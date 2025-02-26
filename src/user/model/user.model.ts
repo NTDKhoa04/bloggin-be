@@ -1,24 +1,37 @@
-import sequelize from "sequelize";
-import { Column, Default, Model, PrimaryKey, Table } from "sequelize-typescript";
+import sequelize from 'sequelize';
+import {
+  AllowNull,
+  Column,
+  Default,
+  Model,
+  NotNull,
+  PrimaryKey,
+  Table,
+  Unique,
+} from 'sequelize-typescript';
 
 @Table
 export class User extends Model {
+  @PrimaryKey
+  @Default(sequelize.UUIDV4)
+  @Column
+  id: string;
 
-    @PrimaryKey
-    @Default(sequelize.UUIDV4)
-    @Column
-    id: string;
+  @AllowNull(false)
+  @Column
+  password: string;
 
-    @Column
-    password: string;
+  @AllowNull(false)
+  @Unique({ name: 'user_taken', msg: 'Username is taken' })
+  @Column
+  username: string;
 
-    @Column
-    username: string;
+  @AllowNull(false)
+  @Unique({ name: 'email_taken', msg: 'Email is taken' })
+  @Column
+  email: string;
 
-    @Column
-    email: string;
-
-    @Column
-    displayName: string;
-        
+  @AllowNull(false)
+  @Column
+  displayName: string;
 }

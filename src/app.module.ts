@@ -4,22 +4,27 @@ import { AppService } from './app.service';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { UserModule } from './user/user.module';
 import { User } from './user/model/user.model';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
-    SequelizeModule.forRoot({
-      dialect: 'postgres',
-      port: 5432,
-      host: 'db',
-      username: 'postgres',
-      password: 'postgres',
-      database: 'postgres',
-      autoLoadModels: true,
-      sync: {alter : true},
-      logging: false,
-      models: [User],
+    ConfigModule.forRoot({ isGlobal: true }),
+    SequelizeModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: async (config: ConfigService) => ({
+        dialect: 'postgres',
+        port: config.getOrThrow<number>('DB_PORT'),
+        host: config.getOrThrow<string>('DB_HOST'),
+        username: config.getOrThrow<string>('DB_USERNAME'),
+        password: config.getOrThrow<string>('DB_PASSWORD'),
+        database: config.getOrThrow<string>('DB_NAME'),
+        autoLoadModels: true,
+        sync: { alter: true },
+        logging: false,
+        models: [User],
+      }),
     }),
-    UserModule
+    UserModule,
   ],
   controllers: [AppController],
   providers: [AppService],

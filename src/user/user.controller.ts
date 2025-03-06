@@ -11,7 +11,7 @@ import { UserService } from './user.service';
 import { CreateUserDto, CreateUserSchema } from './dtos/create-user.dto';
 import { ZodValidationPipe } from 'src/shared/pipes/zod.pipe';
 import { SuccessResponse } from 'src/shared/classes/success-response.class';
-import { QueryUserDto, QueryUserSchema } from './dtos/query-user.sto';
+import { QueryUserDto, QueryUserSchema } from './dtos/query-user.dto';
 import {
   ChangePasswordDto,
   ChangePasswordSchema,

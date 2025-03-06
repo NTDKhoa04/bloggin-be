@@ -15,7 +15,7 @@ import {
   ValidationError,
   ValidationErrorDetail,
 } from 'src/shared/classes/validation-error.class';
-import { QueryUserDto } from './dtos/query-user.sto';
+import { QueryUserDto } from './dtos/query-user.dto';
 import * as argon2 from 'argon2';
 import { ChangePasswordDto } from './dtos/change-password.dto';
 

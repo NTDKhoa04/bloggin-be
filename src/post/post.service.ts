@@ -1,9 +1,9 @@
-import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Post } from './model/post.model';
 import { CreatePostDto } from './dtos/createPostDto.dto';
 import { UpdatePostDto } from './dtos/updatePostDto.dto';
-import { ValidationError } from 'src/shared/classes/validation-error.class';
+import { SuccessResponse } from 'src/shared/classes/success-response.class';
 
 @Injectable()
 export class PostService {
@@ -21,25 +21,35 @@ export class PostService {
 
   async findOne(id: string) {
     const post = await this.postModel.findByPk(id);
-    return post;
+
+    if (!post) {
+      throw new NotFoundException(`Post with id ${id} not found`);
+    }
+
+    return new SuccessResponse<Post>('Post Found', post);
   }
 
   async update(id: string, updatePostDto: UpdatePostDto) {
     const post = await this.postModel.findByPk(id);
 
-    if (post) {
-      await post.update({ ...updatePostDto });
-      await post.save();
+    if (!post) {
+      throw new NotFoundException(`Post with id ${id} not found`);
     }
 
-    return post;
+    await post.update({ ...updatePostDto });
+    await post.save();
+
+    return new SuccessResponse<Post>('Post updated successfully', post);
   }
 
   async remove(id: string) {
     const post = await this.postModel.findByPk(id);
-    if (post) {
-      await post.destroy();
+    if (!post) {
+      throw new NotFoundException(`Post with id ${id} not found`);
     }
-    return `This action removes a #${id} post`;
+
+    await post.destroy();
+
+    return new SuccessResponse<Post>('Post deleted successfully', undefined);
   }
 }

@@ -17,16 +17,12 @@ import {
   ChangePasswordSchema,
 } from './dtos/change-password.dto';
 
-@Controller('user')
+@Controller({
+  path: 'user',
+  version: '1',
+})
 export class UserController {
   constructor(private userService: UserService) {}
-  @Post()
-  async createUser(
-    @Body(new ZodValidationPipe(CreateUserSchema)) userInfo: CreateUserDto,
-  ) {
-    const res = await this.userService.createUser(userInfo);
-    return new SuccessResponse('User created', res);
-  }
 
   @Patch(':id')
   async updateUser(
@@ -61,7 +57,11 @@ export class UserController {
     query: Partial<QueryUserDto>,
   ) {
     const res = await this.userService.findUsers(query);
-    return new SuccessResponse('Users found', res);
+    const formatedRes = res.map((user) => {
+      const { password, ...data } = user.dataValues;
+      return data;
+    });
+    return new SuccessResponse('Users found', formatedRes);
   }
 
   @Get(':id')

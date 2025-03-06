@@ -38,24 +38,6 @@ export class UserService {
     return user;
   }
 
-  async createUser(userInfo: CreateUserDto): Promise<User> {
-    try {
-      const hashedPassword = await argon2.hash(userInfo.password);
-      const info = { ...userInfo, password: hashedPassword };
-      const createdUser = await this.userModel.create(info);
-      return createdUser;
-    } catch (err) {
-      if (err instanceof UniqueConstraintError) {
-        const errorDetails = err.errors.map((error) => {
-          return new ValidationErrorDetail(error.path!, error.message);
-        });
-        throw new ConflictException(
-          new ValidationError(errorDetails, HttpStatus.CONFLICT),
-        );
-      } else throw new InternalServerErrorException();
-    }
-  }
-
   async updateUser(
     id: string,
     userInfo: Partial<CreateUserDto>,

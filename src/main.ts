@@ -1,10 +1,12 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { GlobalExceptionFilter } from './shared/filters/http-exception.filter';
 import { ConfigService } from '@nestjs/config';
 import * as session from 'express-session';
 import * as passport from 'passport';
 import { createClient } from 'redis';
 import { RedisStore } from 'connect-redis';
+import { HttpAdapterHost } from '@nestjs/core';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -37,6 +39,10 @@ async function bootstrap() {
 
   app.use(passport.initialize());
   app.use(passport.session());
+
+  const httpAdapterHost = app.get(HttpAdapterHost);
+
+  app.useGlobalFilters(new GlobalExceptionFilter(httpAdapterHost));
   await app.listen(process.env.PORT ?? 8080);
 }
 bootstrap();

@@ -6,6 +6,13 @@ import { UserModule } from './user/user.module';
 import { User } from './user/model/user.model';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
+import { PostModule } from './post/post.module';
+import { Post } from './post/model/post.model';
+import { TagModule } from './tag/tag.module';
+import { Tag } from './tag/model/tag.model';
+import { PostTagModule } from './post-tag/post-tag.module';
+import { Post_Tag } from './post-tag/model/post-tag.model';
+import { ScheduleModule } from '@nestjs/schedule';
 import { PassportModule } from '@nestjs/passport';
 
 @Module({
@@ -23,12 +30,16 @@ import { PassportModule } from '@nestjs/passport';
         autoLoadModels: true,
         sync: { alter: true },
         logging: false,
-        models: [User],
+        models: [User, Post, Tag, Post_Tag],
       }),
     }),
+    ScheduleModule.forRoot(),
     UserModule,
     AuthModule,
     PassportModule.register({ session: true }),
+    PostModule,
+    TagModule,
+    PostTagModule,
   ],
   controllers: [AppController],
   providers: [AppService],

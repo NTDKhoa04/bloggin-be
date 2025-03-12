@@ -8,6 +8,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { PostModule } from './post/post.module';
 import { Post } from './post/model/post.model';
+import { TagModule } from './tag/tag.module';
+import { Tag } from './tag/model/tag.model';
+import { PostTagModule } from './post-tag/post-tag.module';
+import { Post_Tag } from './post-tag/model/post-tag.model';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -24,12 +29,15 @@ import { Post } from './post/model/post.model';
         autoLoadModels: true,
         sync: { alter: true },
         logging: false,
-        models: [User, Post],
+        models: [User, Post, Tag, Post_Tag],
       }),
     }),
+    ScheduleModule.forRoot(),
     UserModule,
     AuthModule,
     PostModule,
+    TagModule,
+    PostTagModule,
   ],
   controllers: [AppController],
   providers: [AppService],

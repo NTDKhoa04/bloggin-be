@@ -1,9 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Post } from './model/post.model';
-import { CreatePostDto } from './dtos/createPostDto.dto';
-import { UpdatePostDto } from './dtos/updatePostDto.dto';
+import { CreatePostDto } from './dtos/create-post.dto';
+import { UpdatePostDto } from './dtos/update-post.dto';
 import { SuccessResponse } from 'src/shared/classes/success-response.class';
+import { Tag } from 'src/tag/model/tag.model';
 
 @Injectable()
 export class PostService {
@@ -15,12 +16,22 @@ export class PostService {
   }
 
   async findAll() {
-    const posts = await this.postModel.findAll();
+    const posts = await this.postModel.findAll({
+      include: {
+        model: Tag,
+        through: { attributes: [] },
+      },
+    });
     return posts;
   }
 
   async findOne(id: string) {
-    const post = await this.postModel.findByPk(id);
+    const post = await this.postModel.findByPk(id, {
+      include: {
+        model: Tag,
+        through: { attributes: [] },
+      },
+    });
 
     if (!post) {
       throw new NotFoundException(`Post with id ${id} not found`);
@@ -30,7 +41,12 @@ export class PostService {
   }
 
   async update(id: string, updatePostDto: UpdatePostDto) {
-    const post = await this.postModel.findByPk(id);
+    const post = await this.postModel.findByPk(id, {
+      include: {
+        model: Tag,
+        through: { attributes: [] },
+      },
+    });
 
     if (!post) {
       throw new NotFoundException(`Post with id ${id} not found`);

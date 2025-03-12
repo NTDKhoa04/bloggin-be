@@ -6,12 +6,11 @@ import {
   Param,
   Delete,
   Put,
-  UnauthorizedException,
-  ConflictException,
 } from '@nestjs/common';
 import { PostService } from './post.service';
-import { CreatePostDto, CreatePostSchema } from './dtos/createPostDto.dto';
+import { CreatePostDto, CreatePostSchema } from './dtos/create-post.dto';
 import { ZodValidationPipe } from 'src/shared/pipes/zod.pipe';
+import { UpdatePostDto, UpdatePostSchema } from './dtos/update-post.dto';
 
 @Controller({ path: 'post', version: '1' })
 export class PostController {
@@ -32,7 +31,7 @@ export class PostController {
   @Put('/:id')
   async updatePost(
     @Param('id') id: string,
-    @Body() updatePostDto: CreatePostDto,
+    @Body(new ZodValidationPipe(UpdatePostSchema)) updatePostDto: UpdatePostDto,
   ) {
     return this.postService.update(id, updatePostDto);
   }

@@ -28,10 +28,11 @@ export class AuthService {
     const user = await this.userModel.findOne({
       where: { username: username },
     });
-    if (!user) throw new NotFoundException('User not found');
-    const isPasswordCorrect = await argon2.verify(user.password, password);
+    const realUser = user?.dataValues;
+    if (!realUser) throw new NotFoundException('User not found');
+    const isPasswordCorrect = await argon2.verify(realUser.password, password);
     if (isPasswordCorrect) {
-      const { password, ...result } = user;
+      const { password, ...result } = realUser;
       return result;
     }
     return null;

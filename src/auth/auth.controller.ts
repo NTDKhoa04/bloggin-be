@@ -1,10 +1,20 @@
-import { Body, Controller, Post, Request, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 
 import { AuthService } from './auth.service';
-import { AuthGuard } from '@nestjs/passport';
 import { ZodValidationPipe } from 'src/shared/pipes/zod.pipe';
 import { CreateUserDto, CreateUserSchema } from 'src/user/dtos/create-user.dto';
 import { SuccessResponse } from 'src/shared/classes/success-response.class';
+import { LoginGuard } from './utils/login.guard';
+import { AuthenticatedGuard } from './utils/authenticated.guard';
+import { Request } from 'express';
 
 @Controller({
   path: 'auth',
@@ -13,10 +23,17 @@ import { SuccessResponse } from 'src/shared/classes/success-response.class';
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @UseGuards(AuthGuard('local'))
+  @UseGuards(LoginGuard)
   @Post('login')
-  async login(@Request() req) {
+  async login(@Req() req) {
     return req.user;
+  }
+
+  @Delete('logout')
+  async logout(@Req() req: Request) {
+    return req.session.destroy(() => {
+      return 'Logged out';
+    });
   }
 
   @Post('signin')
@@ -25,5 +42,11 @@ export class AuthController {
   ) {
     const res = await this.authService.signIn(userInfo);
     return new SuccessResponse('Account created', res);
+  }
+
+  @UseGuards(AuthenticatedGuard)
+  @Get('test-guard')
+  async testGuard(@Req() req) {
+    return req.user;
   }
 }

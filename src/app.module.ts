@@ -13,6 +13,7 @@ import { Tag } from './tag/model/tag.model';
 import { PostTagModule } from './post-tag/post-tag.module';
 import { Post_Tag } from './post-tag/model/post-tag.model';
 import { ScheduleModule } from '@nestjs/schedule';
+import { PassportModule } from '@nestjs/passport';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     ScheduleModule.forRoot(),
     UserModule,
     AuthModule,
+    PassportModule.register({ session: true }),
     PostModule,
     TagModule,
     PostTagModule,

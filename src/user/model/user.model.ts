@@ -1,15 +1,17 @@
 import sequelize from 'sequelize';
 import {
   AllowNull,
+  BelongsTo,
   Column,
+  DataType,
   Default,
+  ForeignKey,
+  HasOne,
   Model,
-  NotNull,
   PrimaryKey,
   Table,
   Unique,
 } from 'sequelize-typescript';
-
 @Table
 export class User extends Model {
   @PrimaryKey
@@ -34,4 +36,10 @@ export class User extends Model {
   @AllowNull(false)
   @Column
   displayName: string;
+
+  @Default(false)
+  @Column({
+    type: DataType.BOOLEAN,
+  })
+  isAdmin: Boolean;
 }

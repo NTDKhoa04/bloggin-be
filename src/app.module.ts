@@ -14,6 +14,7 @@ import { PostTagModule } from './post-tag/post-tag.module';
 import { Post_Tag } from './post-tag/model/post-tag.model';
 import { ScheduleModule } from '@nestjs/schedule';
 import { PassportModule } from '@nestjs/passport';
+import { AdminOnly } from './auth/utils/role.guard';
 
 @Module({
   imports: [
@@ -36,12 +37,12 @@ import { PassportModule } from '@nestjs/passport';
     ScheduleModule.forRoot(),
     UserModule,
     AuthModule,
-    PassportModule.register({ session: true }),
     PostModule,
     TagModule,
     PostTagModule,
+    PassportModule.register({ session: true }),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, AdminOnly],
 })
 export class AppModule {}

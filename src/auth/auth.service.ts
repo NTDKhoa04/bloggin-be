@@ -6,7 +6,6 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { UserService } from 'src/user/user.service';
 import * as argon2 from 'argon2';
 import { InjectModel } from '@nestjs/sequelize';
 import { User } from 'src/user/model/user.model';
@@ -16,6 +15,7 @@ import {
   ValidationError,
   ValidationErrorDetail,
 } from 'src/shared/classes/validation-error.class';
+import { RoleEnum } from 'src/shared/enum/role.enum';
 
 @Injectable()
 export class AuthService {
@@ -23,11 +23,17 @@ export class AuthService {
     @InjectModel(User)
     private userModel: typeof User,
   ) {}
-
-  async validateUser(username: string, password: string): Promise<any> {
+  private isEmail(identifier: string): boolean {
+    return /\S+@\S+\.\S+/.test(identifier);
+  }
+  async validateUser(identifier: string, password: string): Promise<any> {
+    const condition = this.isEmail(identifier)
+      ? { email: identifier }
+      : { username: identifier };
     const user = await this.userModel.findOne({
-      where: { username: username },
+      where: condition,
     });
+    console.log(user);
     const realUser = user?.dataValues;
     if (!realUser) throw new NotFoundException('User not found');
     const isPasswordCorrect = await argon2.verify(realUser.password, password);
@@ -41,7 +47,10 @@ export class AuthService {
   async signIn(userInfo: CreateUserDto): Promise<User> {
     try {
       const hashedPassword = await argon2.hash(userInfo.password);
-      const info = { ...userInfo, password: hashedPassword };
+      const info = {
+        ...userInfo,
+        password: hashedPassword,
+      };
       const createdUser = await this.userModel.create(info);
       return createdUser;
     } catch (err) {

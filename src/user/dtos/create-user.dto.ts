@@ -1,3 +1,4 @@
+import { RoleEnum } from 'src/shared/enum/role.enum';
 import { z } from 'zod';
 
 export const CreateUserSchema = z.object({

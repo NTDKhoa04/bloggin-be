@@ -7,7 +7,6 @@ import { LocalStrategy } from './utils/local.strategy';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { User } from 'src/user/model/user.model';
 import { SessionSerializer } from './utils/session-serializer';
-import { AuthenticatedGuard } from './utils/authenticated.guard';
 
 @Module({
   imports: [

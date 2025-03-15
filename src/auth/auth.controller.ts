@@ -1,5 +1,6 @@
 import {
   Body,
+  ConsoleLogger,
   Controller,
   Delete,
   Get,
@@ -13,8 +14,11 @@ import { ZodValidationPipe } from 'src/shared/pipes/zod.pipe';
 import { CreateUserDto, CreateUserSchema } from 'src/user/dtos/create-user.dto';
 import { SuccessResponse } from 'src/shared/classes/success-response.class';
 import { LoginGuard } from './utils/login.guard';
-import { AuthenticatedGuard } from './utils/authenticated.guard';
+import { LoggedInOnly } from './utils/authenticated.guard';
 import { Request } from 'express';
+import { Roles } from 'src/shared/classes/role.decorator';
+import { RoleEnum } from 'src/shared/enum/role.enum';
+import { AdminOnly } from './utils/role.guard';
 
 @Controller({
   path: 'auth',
@@ -26,14 +30,14 @@ export class AuthController {
   @UseGuards(LoginGuard)
   @Post('login')
   async login(@Req() req) {
-    return req.user;
+    return new SuccessResponse(`Logged in as ${req.user.username}`);
   }
 
+  @UseGuards(LoggedInOnly)
   @Delete('logout')
   async logout(@Req() req: Request) {
-    return req.session.destroy(() => {
-      return 'Logged out';
-    });
+    req.session.destroy(() => {});
+    return new SuccessResponse('Logged out');
   }
 
   @Post('signin')
@@ -44,7 +48,7 @@ export class AuthController {
     return new SuccessResponse('Account created', res);
   }
 
-  @UseGuards(AuthenticatedGuard)
+  @UseGuards(AdminOnly)
   @Get('test-guard')
   async testGuard(@Req() req) {
     return req.user;

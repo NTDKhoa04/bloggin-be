@@ -9,6 +9,7 @@ import { Post_Tag } from '../post-tag/model/post-tag.model';
 import { Post } from 'src/post/model/post.model';
 import { Tag } from 'src/tag/model/tag.model';
 import { SuccessResponse } from 'src/shared/classes/success-response.class';
+import { Sequelize } from 'sequelize-typescript';
 
 @Injectable()
 export class PostTagService {
@@ -16,32 +17,55 @@ export class PostTagService {
     @InjectModel(Post_Tag) private postTagModel: typeof Post_Tag,
     @InjectModel(Post) private postModel: typeof Post,
     @InjectModel(Tag) private tagModel: typeof Tag,
+    private sequelize: Sequelize,
   ) {}
 
   async create(createPostTagDto: CreatePostTagDto) {
-    const { postId, tagId } = createPostTagDto;
-
-    const existingPostTag = await this.postTagModel.findOne({
-      where: { postId, tagId },
-    });
+    const { postId, tagsId } = createPostTagDto;
 
     const post = await this.postModel.findByPk(createPostTagDto.postId);
-    const tag = await this.tagModel.findByPk(createPostTagDto.tagId);
+
     if (!post) {
       throw new NotFoundException('Post not found');
     }
-    if (!tag) {
-      throw new NotFoundException('Tag not found');
-    }
-    if (existingPostTag) {
-      throw new ConflictException('PostTag already exists');
+
+    const postTags: Post_Tag[] = [];
+
+    const transaction = await this.sequelize.transaction();
+
+    try {
+      for (const tagId of tagsId) {
+        const tag = await this.tagModel.findByPk(tagId, { transaction });
+
+        if (!tag) {
+          throw new NotFoundException('Tag not found');
+        }
+
+        const existingPostTag = await this.postTagModel.findOne({
+          where: { postId, tagId },
+          transaction,
+        });
+
+        if (existingPostTag) {
+          throw new ConflictException('PostTag already exists');
+        }
+
+        const postTag = await this.postTagModel.create(
+          { postId, tagId },
+          { transaction },
+        );
+
+        postTags.push(postTag);
+      }
+      await transaction.commit();
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
     }
 
-    const postTag = await this.postTagModel.create(createPostTagDto);
-
-    return new SuccessResponse<Post_Tag>(
+    return new SuccessResponse<Post_Tag[]>(
       'PostTag created successfully',
-      postTag,
+      postTags,
     );
   }
 
@@ -63,17 +87,28 @@ export class PostTagService {
   }
 
   async remove(createPostTagDto: CreatePostTagDto) {
-    const { postId, tagId } = createPostTagDto;
+    const { postId, tagsId } = createPostTagDto;
 
-    const postTag = await this.postTagModel.findOne({
-      where: { postId, tagId },
-    });
+    const transaction = await this.sequelize.transaction();
 
-    if (!postTag) {
-      throw new NotFoundException('PostTag not found');
+    try {
+      for (const tagId of tagsId) {
+        const postTag = await this.postTagModel.findOne({
+          where: { postId, tagId },
+          transaction,
+        });
+
+        if (!postTag) {
+          throw new NotFoundException('PostTag not found');
+        }
+
+        await postTag.destroy({ transaction });
+      }
+      await transaction.commit();
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
     }
-
-    await postTag.destroy();
 
     return new SuccessResponse('PostTag deleted successfully', undefined);
   }

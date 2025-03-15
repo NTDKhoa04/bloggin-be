@@ -1,7 +1,6 @@
 import sequelize, { literal } from 'sequelize';
 import {
   AllowNull,
-  BelongsToMany,
   Column,
   DataType,
   Default,
@@ -9,11 +8,9 @@ import {
   PrimaryKey,
   Table,
 } from 'sequelize-typescript';
-import { Post_Tag } from 'src/post-tag/model/post-tag.model';
-import { Tag } from 'src/tag/model/tag.model';
 
-@Table
-export class Post extends Model {
+@Table({ timestamps: true })
+export class Draft extends Model {
   @PrimaryKey
   @Default(sequelize.UUIDV4)
   @Column
@@ -30,15 +27,4 @@ export class Post extends Model {
   @AllowNull(false)
   @Column(DataType.JSON)
   content: object;
-
-  @Default(literal('CURRENT_TIMESTAMP'))
-  @Column
-  createdAt: Date;
-
-  @Default(literal('CURRENT_TIMESTAMP'))
-  @Column
-  updatedAt?: Date;
-
-  @BelongsToMany(() => Tag, () => Post_Tag)
-  tags: Tag[];
 }

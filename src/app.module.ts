@@ -14,6 +14,7 @@ import { PostTagModule } from './post-tag/post-tag.module';
 import { Post_Tag } from './post-tag/model/post-tag.model';
 import { ScheduleModule } from '@nestjs/schedule';
 import { PassportModule } from '@nestjs/passport';
+import { DraftModule } from './draft/draft.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { PassportModule } from '@nestjs/passport';
     PostModule,
     TagModule,
     PostTagModule,
+    DraftModule,
   ],
   controllers: [AppController],
   providers: [AppService],

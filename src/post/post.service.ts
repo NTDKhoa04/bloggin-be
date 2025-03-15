@@ -5,14 +5,65 @@ import { CreatePostDto } from './dtos/create-post.dto';
 import { UpdatePostDto } from './dtos/update-post.dto';
 import { SuccessResponse } from 'src/shared/classes/success-response.class';
 import { Tag } from 'src/tag/model/tag.model';
+import { Sequelize } from 'sequelize-typescript';
 
 @Injectable()
 export class PostService {
-  constructor(@InjectModel(Post) private postModel: typeof Post) {}
+  constructor(
+    @InjectModel(Post) private postModel: typeof Post,
+    private sequelize: Sequelize,
+  ) {}
 
-  async create(createPostDto: CreatePostDto): Promise<Post> {
-    const post = this.postModel.create(createPostDto);
-    return post;
+  async create(createPostDto: CreatePostDto) {
+    const transaction = await this.sequelize.transaction();
+
+    try {
+      const { authorId, title, content, tags } = createPostDto;
+
+      // Create post
+      const post = await this.postModel.create(
+        { authorId, title, content },
+        { transaction },
+      );
+
+      if (!post) {
+        throw new Error('Failed to create post.');
+      }
+
+      // Find existing tags
+      const existingTags = await Tag.findAll({
+        where: { name: tags },
+        transaction,
+      });
+
+      // Find non-existing tags name
+      const existingTagNames = new Set(existingTags.map((tag) => tag.name));
+      const nonExistingTagsName = tags.filter(
+        (tagName) => !existingTagNames.has(tagName),
+      );
+
+      // Create new tags
+      const newTags = await Tag.bulkCreate(
+        nonExistingTagsName.map((name) => ({ name })),
+        { transaction, returning: true },
+      );
+
+      // Add tags together
+      const allTags = [...existingTags, ...newTags];
+
+      await post.$add('tags', allTags, {
+        transaction,
+      });
+
+      await this.postModel.findByPk(post.id, { include: Tag, transaction });
+
+      await transaction.commit();
+
+      return new SuccessResponse<Post>('Create post successfully', post);
+    } catch (error) {
+      await transaction.rollback();
+      throw new Error('Failed to create post: ' + error.message);
+    }
   }
 
   async findAll() {

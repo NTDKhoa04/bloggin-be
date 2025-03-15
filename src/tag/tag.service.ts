@@ -3,6 +3,7 @@ import { CreateTagDto } from './dto/create-tag.dto';
 import { InjectModel } from '@nestjs/sequelize';
 import { Tag } from './model/tag.model';
 import { SuccessResponse } from 'src/shared/classes/success-response.class';
+import { Op } from 'sequelize';
 
 @Injectable()
 export class TagService {
@@ -14,8 +15,10 @@ export class TagService {
     return new SuccessResponse<Tag>('Tag created successfully', post);
   }
 
-  async findAll() {
-    const tags = await this.tagModel.findAll();
+  async findAll(name?: string) {
+    const tags = await this.tagModel.findAll({
+      where: name ? { name: { [Op.iLike]: `%${name}%` } } : undefined,
+    });
 
     return new SuccessResponse<Tag[]>('Tags found', tags);
   }

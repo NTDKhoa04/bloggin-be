@@ -10,7 +10,7 @@ export class TagCleanupService {
 
   constructor(private readonly sequelize: Sequelize) {}
 
-  @Cron(CronExpression.EVERY_10_MINUTES) // Chạy mỗi phút
+  @Cron(CronExpression.EVERY_10_MINUTES) // Chạy mỗi 10 phút
   async cleanupUnusedTags() {
     this.logger.log('Running tag cleanup job...');
 

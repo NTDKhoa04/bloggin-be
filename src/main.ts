@@ -39,7 +39,11 @@ async function bootstrap() {
 
   app.use(passport.initialize());
   app.use(passport.session());
-
+  app.enableCors({
+    origin: 'http://localhost:3000',
+    credentials: true,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  });
   const httpAdapterHost = app.get(HttpAdapterHost);
 
   app.useGlobalFilters(new GlobalExceptionFilter(httpAdapterHost));

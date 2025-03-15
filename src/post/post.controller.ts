@@ -25,6 +25,7 @@ export class PostController {
   async createPost(
     @Body(new ZodValidationPipe(CreatePostSchema)) createPostDto: CreatePostDto,
   ) {
+    console.log('createPostDto', createPostDto);
     return this.postService.create(createPostDto);
   }
 

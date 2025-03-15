@@ -1,13 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Patch,
-  Post,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Query } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto, CreateUserSchema } from './dtos/create-user.dto';
 import { ZodValidationPipe } from 'src/shared/pipes/zod.pipe';

@@ -1,17 +1,15 @@
 import sequelize from 'sequelize';
 import {
   AllowNull,
-  BelongsTo,
   Column,
   DataType,
   Default,
-  ForeignKey,
-  HasOne,
   Model,
   PrimaryKey,
   Table,
   Unique,
 } from 'sequelize-typescript';
+import { LoginMethodEmun } from 'src/shared/enum/login-method.enum';
 @Table
 export class User extends Model {
   @PrimaryKey
@@ -19,7 +17,7 @@ export class User extends Model {
   @Column
   id: string;
 
-  @AllowNull(false)
+  @AllowNull(true)
   @Column
   password: string;
 
@@ -37,9 +35,23 @@ export class User extends Model {
   @Column
   displayName: string;
 
+  @AllowNull(true)
+  @Column
+  avatarUrl: string;
+
+  @Default(false)
+  @Column
+  isVerified: boolean;
+
   @Default(false)
   @Column({
     type: DataType.BOOLEAN,
   })
-  isAdmin: Boolean;
+  isAdmin: boolean;
+
+  @Default(LoginMethodEmun.LOCAL)
+  @Column({
+    type: DataType.ENUM(...Object.values(LoginMethodEmun)),
+  })
+  loginMethod: LoginMethodEmun;
 }

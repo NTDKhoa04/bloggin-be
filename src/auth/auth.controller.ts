@@ -19,6 +19,11 @@ import { Request } from 'express';
 import { Roles } from 'src/shared/classes/role.decorator';
 import { RoleEnum } from 'src/shared/enum/role.enum';
 import { AdminOnly } from './utils/role.guard';
+import { User } from 'src/user/model/user.model';
+
+export interface AuthenticatedRequest extends Request {
+  user?: User;
+}
 
 @Controller({
   path: 'auth',
@@ -46,6 +51,19 @@ export class AuthController {
   ) {
     const res = await this.authService.signIn(userInfo);
     return new SuccessResponse('Account created', res);
+  }
+
+  @Get('validate-session')
+  validateSession(@Req() req: AuthenticatedRequest) {
+    if (req.user) {
+      return new SuccessResponse('Session is Valid', {
+        valid: true,
+      });
+    } else {
+      return new SuccessResponse('Session is Unvalid', {
+        valid: false,
+      });
+    }
   }
 
   @UseGuards(AdminOnly)

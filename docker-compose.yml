@@ -26,7 +26,6 @@ services:
       POSTGRES_DB: ${DB_NAME}
     volumes:
       - postgres-data:/var/lib/postgresql/data
-
   redis:
     image: redis:7.4.2-alpine
     ports:

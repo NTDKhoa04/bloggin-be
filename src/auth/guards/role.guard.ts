@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { InjectModel } from '@nestjs/sequelize';
-import { ROLES_KEY } from 'src/shared/classes/role.decorator';
+import { ROLES_KEY } from 'src/shared/decorators/role.decorator';
 import { RoleEnum } from 'src/shared/enum/role.enum';
 
 @Injectable()

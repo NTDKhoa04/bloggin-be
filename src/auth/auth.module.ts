@@ -3,10 +3,10 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { UserModule } from 'src/user/user.module';
 import { PassportModule } from '@nestjs/passport';
-import { LocalStrategy } from './utils/local.strategy';
+import { LocalStrategy } from './strategies/local.strategy';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { User } from 'src/user/model/user.model';
-import { SessionSerializer } from './utils/session-serializer';
+import { SessionSerializer } from './strategies/session-serializer';
 
 @Module({
   imports: [

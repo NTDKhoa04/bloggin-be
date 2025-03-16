@@ -1,6 +1,5 @@
 import {
   Body,
-  ConsoleLogger,
   Controller,
   Delete,
   Get,
@@ -13,12 +12,11 @@ import { AuthService } from './auth.service';
 import { ZodValidationPipe } from 'src/shared/pipes/zod.pipe';
 import { CreateUserDto, CreateUserSchema } from 'src/user/dtos/create-user.dto';
 import { SuccessResponse } from 'src/shared/classes/success-response.class';
-import { LoginGuard } from './utils/login.guard';
-import { LoggedInOnly } from './utils/authenticated.guard';
+import { LoginGuard } from './guards/login.guard';
+import { LoggedInOnly } from './guards/authenticated.guard';
 import { Request } from 'express';
-import { Roles } from 'src/shared/classes/role.decorator';
-import { RoleEnum } from 'src/shared/enum/role.enum';
-import { AdminOnly } from './utils/role.guard';
+import { AdminOnly } from './guards/role.guard';
+import { Me } from 'src/shared/decorators/user.decorator';
 import { User } from 'src/user/model/user.model';
 
 export interface AuthenticatedRequest extends Request {
@@ -34,8 +32,9 @@ export class AuthController {
 
   @UseGuards(LoginGuard)
   @Post('login')
-  async login(@Req() req) {
-    return new SuccessResponse(`Logged in as ${req.user.username}`);
+  async login(@Me() user: Partial<User>) {
+    const { password, ...res } = user;
+    return new SuccessResponse('Logged in', res);
   }
 
   @UseGuards(LoggedInOnly)
@@ -45,12 +44,19 @@ export class AuthController {
     return new SuccessResponse('Logged out');
   }
 
-  @Post('signin')
+  @Post('register')
   async createUser(
     @Body(new ZodValidationPipe(CreateUserSchema)) userInfo: CreateUserDto,
   ) {
     const res = await this.authService.signIn(userInfo);
     return new SuccessResponse('Account created', res);
+  }
+
+  @UseGuards(LoggedInOnly)
+  @Get('me')
+  async getMe(@Me() user: Partial<User>) {
+    const { password, ...res } = user;
+    return new SuccessResponse('Current user retrieved', res);
   }
 
   @Get('validate-session')

@@ -15,12 +15,6 @@ import { UpdatePostDto, UpdatePostSchema } from './dtos/update-post.dto';
 @Controller({ path: 'post', version: '1' })
 export class PostController {
   constructor(private postService: PostService) {}
-
-  // @Get('/test')
-  // async test() {
-  //   throw new ConflictException();
-  // }
-
   @Post()
   async createPost(
     @Body(new ZodValidationPipe(CreatePostSchema)) createPostDto: CreatePostDto,

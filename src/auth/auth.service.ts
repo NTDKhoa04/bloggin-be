@@ -1,7 +1,6 @@
 import {
   ConflictException,
   HttpStatus,
-  Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -9,13 +8,15 @@ import {
 import * as argon2 from 'argon2';
 import { InjectModel } from '@nestjs/sequelize';
 import { User } from 'src/user/model/user.model';
-import { CreateUserDto } from 'src/user/dtos/create-user.dto';
+import {
+  CreateGoogleUserDto,
+  CreateLocalUserDto,
+} from 'src/user/dtos/create-user.dto';
 import { UniqueConstraintError } from 'sequelize';
 import {
   ValidationError,
   ValidationErrorDetail,
 } from 'src/shared/classes/validation-error.class';
-import { RoleEnum } from 'src/shared/enum/role.enum';
 
 @Injectable()
 export class AuthService {
@@ -44,15 +45,35 @@ export class AuthService {
     return null;
   }
 
-  async signIn(userInfo: CreateUserDto): Promise<User> {
+  async validateGoogleUser(userInfo: CreateGoogleUserDto): Promise<any> {
+    const user = await this.userModel.findOne({
+      where: { email: userInfo.email },
+    });
+    if (user) {
+      console.log('User found with google account', user);
+      return user;
+    }
+    const createdUser = await this.userModel.create(userInfo);
+    console.log('New user created with google account', createdUser);
+    return createdUser;
+  }
+
+  async signIn(userInfo: CreateLocalUserDto): Promise<User> {
     try {
       const hashedPassword = await argon2.hash(userInfo.password);
       const info = {
         ...userInfo,
         password: hashedPassword,
       };
-      const createdUser = await this.userModel.create(info);
-      return createdUser;
+      await this.userModel.create(info);
+      const createdUser = await this.userModel.findOne({
+        where: { username: userInfo.username },
+      });
+      if (!createdUser)
+        throw new InternalServerErrorException(
+          'Something went wrong with creating new user',
+        );
+      return createdUser.dataValues;
     } catch (err) {
       if (err instanceof UniqueConstraintError) {
         const errorDetails = err.errors.map((error) => {

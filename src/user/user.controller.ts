@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Patch, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto, CreateUserSchema } from './dtos/create-user.dto';
 import { ZodValidationPipe } from 'src/shared/pipes/zod.pipe';
@@ -8,6 +16,9 @@ import {
   ChangePasswordDto,
   ChangePasswordSchema,
 } from './dtos/change-password.dto';
+import { Me } from 'src/shared/decorators/user.decorator';
+import { User } from './model/user.model';
+import { LoggedInOnly } from 'src/auth/guards/authenticated.guard';
 
 @Controller({
   path: 'user',
@@ -16,30 +27,34 @@ import {
 export class UserController {
   constructor(private userService: UserService) {}
 
-  @Patch(':id')
+  @UseGuards(LoggedInOnly)
+  @Patch()
   async updateUser(
-    @Param('id') id: string,
+    @Me() { id }: Partial<User>,
     @Body(
       new ZodValidationPipe(
-        CreateUserSchema.partial().omit({ password: true }).strict(),
+        CreateUserSchema.partial()
+          .omit({ password: true, isVerified: true, loginMethod: true })
+          .strict(),
       ),
     )
     userInfo: Partial<CreateUserDto>,
   ) {
     const { password, ...data } = await this.userService.updateUser(
-      id,
+      id!,
       userInfo,
     );
     return new SuccessResponse('User updated', data);
   }
 
-  @Patch(':id/password')
+  @UseGuards(LoggedInOnly)
+  @Patch('password')
   async changePassword(
-    @Param('id') id: string,
+    @Me() { id }: Partial<User>,
     @Body(new ZodValidationPipe(ChangePasswordSchema.strict()))
     data: ChangePasswordDto,
   ) {
-    await this.userService.changePassword(id, data);
+    await this.userService.changePassword(id!, data);
     return new SuccessResponse('Password updated', null);
   }
 

@@ -3,34 +3,118 @@ import { InjectModel } from '@nestjs/sequelize';
 import { Post } from './model/post.model';
 import { CreatePostDto } from './dtos/create-post.dto';
 import { UpdatePostDto } from './dtos/update-post.dto';
-import { SuccessResponse } from 'src/shared/classes/success-response.class';
+import {
+  PaginationWrapper,
+  SuccessResponse,
+} from 'src/shared/classes/success-response.class';
 import { Tag } from 'src/tag/model/tag.model';
+import { Sequelize } from 'sequelize-typescript';
+import { User } from 'src/user/model/user.model';
+import { PaginationDto } from 'src/shared/classes/pagination.dto';
+
+const USER_ATTRIBUTES = [
+  'username',
+  'displayName',
+  'avatarUrl',
+  'isAdmin',
+  'email',
+];
 
 @Injectable()
 export class PostService {
-  constructor(@InjectModel(Post) private postModel: typeof Post) {}
+  constructor(
+    @InjectModel(Post) private postModel: typeof Post,
+    @InjectModel(User) private userModel: typeof User,
+    @InjectModel(Tag) private tagModel: typeof Tag,
+    private sequelize: Sequelize,
+  ) {}
 
-  async create(createPostDto: CreatePostDto): Promise<Post> {
-    const post = this.postModel.create(createPostDto);
-    return post;
+  async create(createPostDto: CreatePostDto) {
+    const transaction = await this.sequelize.transaction();
+
+    try {
+      const { authorId, title, content, tags } = createPostDto;
+
+      const user = await this.userModel.findByPk(authorId);
+
+      if (!user) {
+        throw new NotFoundException(`User with id ${authorId} not found`);
+      }
+
+      // Create post
+      const post = await this.postModel.create(
+        { authorId, title, content },
+        { transaction },
+      );
+
+      if (!post) {
+        throw new Error('Failed to create post.');
+      }
+
+      // Find existing tags
+      const existingTags = await Tag.findAll({
+        where: { name: tags },
+        transaction,
+      });
+
+      // Find non-existing tags name
+      const existingTagNames = new Set(existingTags.map((tag) => tag.name));
+      const nonExistingTagsName = tags.filter(
+        (tagName) => !existingTagNames.has(tagName),
+      );
+
+      // Create new tags
+      const newTags = await Tag.bulkCreate(
+        nonExistingTagsName.map((name) => ({ name })),
+        { transaction, returning: true },
+      );
+
+      // Add tags together
+      const allTags = [...existingTags, ...newTags];
+
+      await post.$add('tags', allTags, {
+        transaction,
+      });
+
+      await this.postModel.findByPk(post.id, { include: Tag, transaction });
+
+      await transaction.commit();
+
+      return new SuccessResponse<Post>('Create post successfully', post);
+    } catch (error) {
+      await transaction.rollback();
+      throw new Error('Failed to create post: ' + error.message);
+    }
   }
 
-  async findAll() {
-    const posts = await this.postModel.findAll({
-      include: {
-        model: Tag,
-        through: { attributes: [] },
-      },
+  async findAll(pagination: PaginationDto) {
+    const { rows: posts, count } = await this.postModel.findAndCountAll({
+      include: [
+        {
+          model: User,
+          attributes: USER_ATTRIBUTES,
+        },
+        {
+          model: Tag,
+          through: { attributes: [] },
+        },
+      ],
     });
-    return posts;
+    return new PaginationWrapper<Post[]>('Posts found', posts, count, 1, 10);
   }
 
   async findOne(id: string) {
     const post = await this.postModel.findByPk(id, {
-      include: {
-        model: Tag,
-        through: { attributes: [] },
-      },
+      include: [
+        {
+          model: User,
+          attributes: USER_ATTRIBUTES,
+        },
+        {
+          model: Tag,
+          through: { attributes: [] },
+        },
+      ],
     });
 
     if (!post) {
@@ -40,12 +124,42 @@ export class PostService {
     return new SuccessResponse<Post>('Post Found', post);
   }
 
+  async findByAuthor(authorId: string) {
+    const author = await this.userModel.findByPk(authorId);
+
+    if (!author) {
+      throw new NotFoundException(`Author with id ${authorId} not found`);
+    }
+
+    const posts = await this.postModel.findAll({
+      where: { authorId },
+      include: [
+        {
+          model: User,
+          attributes: USER_ATTRIBUTES,
+        },
+        {
+          model: Tag,
+          through: { attributes: [] },
+        },
+      ],
+    });
+
+    return new SuccessResponse<Post[]>('Post Found', posts);
+  }
+
   async update(id: string, updatePostDto: UpdatePostDto) {
     const post = await this.postModel.findByPk(id, {
-      include: {
-        model: Tag,
-        through: { attributes: [] },
-      },
+      include: [
+        {
+          model: User,
+          attributes: USER_ATTRIBUTES,
+        },
+        {
+          model: Tag,
+          through: { attributes: [] },
+        },
+      ],
     });
 
     if (!post) {

@@ -6,11 +6,18 @@ import {
   Param,
   Delete,
   Put,
+  Query,
 } from '@nestjs/common';
 import { PostService } from './post.service';
 import { CreatePostDto, CreatePostSchema } from './dtos/create-post.dto';
 import { ZodValidationPipe } from 'src/shared/pipes/zod.pipe';
 import { UpdatePostDto, UpdatePostSchema } from './dtos/update-post.dto';
+import { Me } from 'src/shared/decorators/user.decorator';
+import { User } from 'src/user/model/user.model';
+import {
+  PaginationDto,
+  PaginationSchema,
+} from 'src/shared/classes/pagination.dto';
 
 @Controller({ path: 'post', version: '1' })
 export class PostController {
@@ -31,8 +38,16 @@ export class PostController {
   }
 
   @Get('/all')
-  async getAllPosts() {
-    return this.postService.findAll();
+  async getAllPosts(
+    @Query(new ZodValidationPipe(PaginationSchema)) pagination: PaginationDto,
+  ) {
+    return this.postService.findAll(pagination);
+  }
+
+  @Get('/author')
+  async getPostsByAuthor(@Me() user: Partial<User>) {
+    const { id, ...userWithoutId } = user;
+    return this.postService.findByAuthor(id ? id : '');
   }
 
   @Get('/:id')

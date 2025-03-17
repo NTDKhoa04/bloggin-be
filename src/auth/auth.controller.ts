@@ -25,6 +25,10 @@ import { Me } from 'src/shared/decorators/user.decorator';
 import { User } from 'src/user/model/user.model';
 import { GoogleAuthenticated } from './guards/google.guard';
 
+export interface AuthenticatedRequest extends Request {
+  user?: User;
+}
+
 @Controller({
   path: 'auth',
   version: '1',
@@ -73,6 +77,17 @@ export class AuthController {
   async getMe(@Me() user: Partial<User>) {
     const { password, ...res } = user;
     return new SuccessResponse('Current user retrieved', res);
+  }
+
+  @Get('validate-session')
+  validateSession(@Req() req: AuthenticatedRequest) {
+    if (req.user) {
+      return new SuccessResponse('Session is Valid', {
+        valid: true,
+      });
+    } else {
+      throw new Error('Session is Invalid');
+    }
   }
 
   @UseGuards(AdminOnly)

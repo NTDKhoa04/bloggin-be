@@ -14,7 +14,9 @@ import { PostTagModule } from './post-tag/post-tag.module';
 import { Post_Tag } from './post-tag/model/post-tag.model';
 import { ScheduleModule } from '@nestjs/schedule';
 import { PassportModule } from '@nestjs/passport';
+import { DraftModule } from './draft/draft.module';
 import { AdminOnly } from './auth/guards/role.guard';
+import { Draft } from './draft/model/draft.model';
 
 @Module({
   imports: [
@@ -31,7 +33,7 @@ import { AdminOnly } from './auth/guards/role.guard';
         autoLoadModels: true,
         sync: { alter: true },
         logging: false,
-        models: [User, Post, Tag, Post_Tag],
+        models: [User, Post, Tag, Post_Tag, Draft],
       }),
     }),
     ScheduleModule.forRoot(),
@@ -40,6 +42,7 @@ import { AdminOnly } from './auth/guards/role.guard';
     PostModule,
     TagModule,
     PostTagModule,
+    DraftModule,
     PassportModule.register({ session: true }),
   ],
   controllers: [AppController],

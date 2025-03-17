@@ -1,0 +1,50 @@
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  Put,
+} from '@nestjs/common';
+import { DraftService } from './draft.service';
+import { CreateDraftDto, CreateDraftSchema } from './dto/create-draft.dto';
+import { UpdateDraftDto, UpdateDraftSchema } from './dto/update-draft.dto';
+import { ZodValidationPipe } from 'src/shared/pipes/zod.pipe';
+
+@Controller({ path: 'draft', version: '1' })
+export class DraftController {
+  constructor(private readonly draftService: DraftService) {}
+
+  @Post()
+  async createDraft(
+    @Body(new ZodValidationPipe(CreateDraftSchema))
+    createDraftDto: CreateDraftDto,
+  ) {
+    return this.draftService.create(createDraftDto);
+  }
+
+  @Put('/:id')
+  async updatePost(
+    @Param('id') id: string,
+    @Body(new ZodValidationPipe(UpdateDraftSchema))
+    updateDraftDto: UpdateDraftDto,
+  ) {
+    return this.draftService.update(id, updateDraftDto);
+  }
+
+  @Get('/author/:authorId')
+  async getDraftsByAuthor(@Param('authorId') authorId: string) {
+    return this.draftService.findByAuthor(authorId);
+  }
+
+  @Get('/:id')
+  async getPostById(@Param('id') id: string) {
+    return this.draftService.findOne(id);
+  }
+
+  @Delete('/:id')
+  async deletePost(@Param('id') id: string) {
+    return this.draftService.remove(id);
+  }
+}

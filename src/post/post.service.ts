@@ -6,11 +6,13 @@ import { UpdatePostDto } from './dtos/update-post.dto';
 import { SuccessResponse } from 'src/shared/classes/success-response.class';
 import { Tag } from 'src/tag/model/tag.model';
 import { Sequelize } from 'sequelize-typescript';
+import { User } from 'src/user/model/user.model';
 
 @Injectable()
 export class PostService {
   constructor(
     @InjectModel(Post) private postModel: typeof Post,
+    @InjectModel(User) private userModel: typeof User,
     private sequelize: Sequelize,
   ) {}
 
@@ -19,6 +21,12 @@ export class PostService {
 
     try {
       const { authorId, title, content, tags } = createPostDto;
+
+      const user = await this.userModel.findByPk(authorId);
+
+      if (!user) {
+        throw new NotFoundException(`User with id ${authorId} not found`);
+      }
 
       // Create post
       const post = await this.postModel.create(

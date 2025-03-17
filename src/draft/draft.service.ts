@@ -4,10 +4,14 @@ import { Draft } from './model/draft.model';
 import { CreateDraftDto } from './dto/create-draft.dto';
 import { UpdateDraftDto } from './dto/update-draft.dto';
 import { SuccessResponse } from 'src/shared/classes/success-response.class';
+import { User } from 'src/user/model/user.model';
 
 @Injectable()
 export class DraftService {
-  constructor(@InjectModel(Draft) private DraftModel: typeof Draft) {}
+  constructor(
+    @InjectModel(Draft) private DraftModel: typeof Draft,
+    @InjectModel(User) private userModel: typeof User,
+  ) {}
 
   async create(createDraftDto: CreateDraftDto) {
     const draft = await this.DraftModel.create(createDraftDto);
@@ -15,7 +19,7 @@ export class DraftService {
   }
 
   async findByAuthor(authorId: string) {
-    const author = await this.DraftModel.findByPk(authorId);
+    const author = await this.userModel.findByPk(authorId);
 
     if (!author) {
       throw new NotFoundException(`Author with id ${authorId} not found`);

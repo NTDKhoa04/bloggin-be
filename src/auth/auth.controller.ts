@@ -66,9 +66,7 @@ export class AuthController {
         valid: true,
       });
     } else {
-      return new SuccessResponse('Session is Unvalid', {
-        valid: false,
-      });
+      throw new Error('Session is Invalid');
     }
   }
 

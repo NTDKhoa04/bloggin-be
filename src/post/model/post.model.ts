@@ -1,16 +1,19 @@
 import sequelize, { literal } from 'sequelize';
 import {
   AllowNull,
+  BelongsTo,
   BelongsToMany,
   Column,
   DataType,
   Default,
+  ForeignKey,
   Model,
   PrimaryKey,
   Table,
 } from 'sequelize-typescript';
 import { Post_Tag } from 'src/post-tag/model/post-tag.model';
 import { Tag } from 'src/tag/model/tag.model';
+import { User } from 'src/user/model/user.model';
 
 @Table
 export class Post extends Model {
@@ -21,6 +24,7 @@ export class Post extends Model {
 
   @AllowNull(false)
   @Column
+  @ForeignKey(() => User)
   authorId: string;
 
   @AllowNull(false)
@@ -41,4 +45,7 @@ export class Post extends Model {
 
   @BelongsToMany(() => Tag, () => Post_Tag)
   tags: Tag[];
+
+  @BelongsTo(() => User)
+  author: User;
 }

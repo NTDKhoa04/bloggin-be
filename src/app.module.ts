@@ -17,6 +17,7 @@ import { PassportModule } from '@nestjs/passport';
 import { DraftModule } from './draft/draft.module';
 import { AdminOnly } from './auth/guards/role.guard';
 import { Draft } from './draft/model/draft.model';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { Draft } from './draft/model/draft.model';
     PostTagModule,
     DraftModule,
     PassportModule.register({ session: true }),
+    CloudinaryModule,
   ],
   controllers: [AppController],
   providers: [AppService, AdminOnly],

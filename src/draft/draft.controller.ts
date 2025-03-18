@@ -6,11 +6,18 @@ import {
   Param,
   Delete,
   Put,
+  Query,
 } from '@nestjs/common';
 import { DraftService } from './draft.service';
 import { CreateDraftDto, CreateDraftSchema } from './dto/create-draft.dto';
 import { UpdateDraftDto, UpdateDraftSchema } from './dto/update-draft.dto';
 import { ZodValidationPipe } from 'src/shared/pipes/zod.pipe';
+import {
+  PaginationDto,
+  PaginationSchema,
+} from 'src/shared/classes/pagination.dto';
+import { Me } from 'src/shared/decorators/user.decorator';
+import { User } from 'src/user/model/user.model';
 
 @Controller({ path: 'draft', version: '1' })
 export class DraftController {
@@ -29,13 +36,19 @@ export class DraftController {
     @Param('id') id: string,
     @Body(new ZodValidationPipe(UpdateDraftSchema))
     updateDraftDto: UpdateDraftDto,
+    @Me() user: Partial<User>,
   ) {
-    return this.draftService.update(id, updateDraftDto);
+    const { id: userId, ...userWithoutId } = user;
+    return this.draftService.update(id, updateDraftDto, userId ?? '');
   }
 
-  @Get('/author/:authorId')
-  async getDraftsByAuthor(@Param('authorId') authorId: string) {
-    return this.draftService.findByAuthor(authorId);
+  @Get('/author')
+  async getDraftsByAuthor(
+    @Me() user: Partial<User>,
+    @Query(new ZodValidationPipe(PaginationSchema)) pagination: PaginationDto,
+  ) {
+    const { id, ...userWithoutId } = user;
+    return this.draftService.findByAuthor(id ? id : '', pagination);
   }
 
   @Get('/:id')

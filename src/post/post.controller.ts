@@ -33,8 +33,10 @@ export class PostController {
   async updatePost(
     @Param('id') id: string,
     @Body(new ZodValidationPipe(UpdatePostSchema)) updatePostDto: UpdatePostDto,
+    @Me() user: Partial<User>,
   ) {
-    return this.postService.update(id, updatePostDto);
+    const { id: userId, ...userWithoutId } = user;
+    return this.postService.update(id, updatePostDto, userId ?? '');
   }
 
   @Get('/all')
@@ -45,9 +47,12 @@ export class PostController {
   }
 
   @Get('/author')
-  async getPostsByAuthor(@Me() user: Partial<User>) {
+  async getPostsByAuthor(
+    @Me() user: Partial<User>,
+    @Query(new ZodValidationPipe(PaginationSchema)) pagination: PaginationDto,
+  ) {
     const { id, ...userWithoutId } = user;
-    return this.postService.findByAuthor(id ? id : '');
+    return this.postService.findByAuthor(id ? id : '', pagination);
   }
 
   @Get('/:id')

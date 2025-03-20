@@ -4,12 +4,14 @@ import {
   Column,
   DataType,
   Default,
+  HasMany,
   Model,
   PrimaryKey,
   Table,
   Unique,
 } from 'sequelize-typescript';
 import { LoginMethodEmun } from 'src/shared/enum/login-method.enum';
+import { Comment } from 'src/comment/model/comment.model';
 @Table
 export class User extends Model {
   @PrimaryKey
@@ -54,4 +56,7 @@ export class User extends Model {
     type: DataType.ENUM(...Object.values(LoginMethodEmun)),
   })
   loginMethod: LoginMethodEmun;
+
+  @HasMany(() => Comment)
+  comments: Comment[];
 }

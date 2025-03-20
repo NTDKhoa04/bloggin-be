@@ -1,7 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { InjectModel } from '@nestjs/sequelize';
-import { Tag } from './model/tag.model';
 import { Sequelize } from 'sequelize-typescript';
 
 @Injectable()

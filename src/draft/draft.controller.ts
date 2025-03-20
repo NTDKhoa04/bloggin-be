@@ -7,6 +7,7 @@ import {
   Delete,
   Put,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { DraftService } from './draft.service';
 import { CreateDraftDto, CreateDraftSchema } from './dto/create-draft.dto';
@@ -18,7 +19,9 @@ import {
 } from 'src/shared/classes/pagination.dto';
 import { Me } from 'src/shared/decorators/user.decorator';
 import { User } from 'src/user/model/user.model';
+import { LoggedInOnly } from 'src/auth/guards/authenticated.guard';
 
+@UseGuards(LoggedInOnly)
 @Controller({ path: 'draft', version: '1' })
 export class DraftController {
   constructor(private readonly draftService: DraftService) {}

@@ -1,11 +1,11 @@
-import sequelize, { literal } from 'sequelize';
+import sequelize from 'sequelize';
 import {
   AllowNull,
+  BelongsToMany,
   Column,
   Default,
   Model,
   PrimaryKey,
-  BelongsToMany,
   Table,
 } from 'sequelize-typescript';
 import { Post_Tag } from 'src/post-tag/model/post-tag.model';

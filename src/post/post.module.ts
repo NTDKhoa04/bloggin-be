@@ -17,5 +17,6 @@ import { TagModule } from 'src/tag/tag.module';
   ],
   controllers: [PostController],
   providers: [PostService],
+  exports: [PostService],
 })
 export class PostModule {}

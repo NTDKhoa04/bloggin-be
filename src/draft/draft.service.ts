@@ -1,10 +1,18 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Draft } from './model/draft.model';
 import { CreateDraftDto } from './dto/create-draft.dto';
 import { UpdateDraftDto } from './dto/update-draft.dto';
-import { SuccessResponse } from 'src/shared/classes/success-response.class';
+import {
+  PaginationWrapper,
+  SuccessResponse,
+} from 'src/shared/classes/success-response.class';
 import { User } from 'src/user/model/user.model';
+import { PaginationDto } from 'src/shared/classes/pagination.dto';
 
 @Injectable()
 export class DraftService {
@@ -18,18 +26,29 @@ export class DraftService {
     return new SuccessResponse<Draft>('Draft Found', draft);
   }
 
-  async findByAuthor(authorId: string) {
+  async findByAuthor(authorId: string, pagination: PaginationDto) {
+    const offset = (pagination.page - 1) * pagination.limit;
+
     const author = await this.userModel.findByPk(authorId);
 
     if (!author) {
       throw new NotFoundException(`Author with id ${authorId} not found`);
     }
 
-    const drafts = await this.DraftModel.findAll({
+    const { rows: drafts, count } = await this.DraftModel.findAndCountAll({
       where: { authorId },
+      offset,
+      limit: pagination.limit,
+      order: [['updatedAt', 'DESC']],
     });
 
-    return new SuccessResponse<Draft[]>('Draft Found', drafts);
+    return new PaginationWrapper<Draft[]>(
+      'Draft Found',
+      drafts,
+      count,
+      pagination.page ?? 1,
+      pagination.limit ?? 10,
+    );
   }
 
   async findOne(id: string) {
@@ -42,11 +61,15 @@ export class DraftService {
     return new SuccessResponse<Draft>('Draft Found', draft);
   }
 
-  async update(id: string, updateDraftDto: UpdateDraftDto) {
+  async update(id: string, updateDraftDto: UpdateDraftDto, authorId: string) {
     const draft = await this.DraftModel.findByPk(id);
 
     if (!draft) {
       throw new NotFoundException(`Draft with id ${id} not found`);
+    }
+
+    if (draft.authorId !== authorId) {
+      throw new ForbiddenException(`You are not allowed to update this draft`);
     }
 
     await draft.update({ ...updateDraftDto });

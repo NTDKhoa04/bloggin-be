@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Post } from './model/post.model';
 import { CreatePostDto } from './dtos/create-post.dto';
@@ -88,6 +92,8 @@ export class PostService {
   }
 
   async findAll(pagination: PaginationDto) {
+    const offset = (pagination.page - 1) * pagination.limit;
+
     const { rows: posts, count } = await this.postModel.findAndCountAll({
       include: [
         {
@@ -99,8 +105,18 @@ export class PostService {
           through: { attributes: [] },
         },
       ],
+      limit: pagination.limit,
+      offset,
+      order: [['createdAt', 'DESC']],
     });
-    return new PaginationWrapper<Post[]>('Posts found', posts, count, 1, 10);
+
+    return new PaginationWrapper<Post[]>(
+      'Posts found',
+      posts,
+      count,
+      pagination.page,
+      pagination.limit,
+    );
   }
 
   async findOne(id: string) {
@@ -124,14 +140,16 @@ export class PostService {
     return new SuccessResponse<Post>('Post Found', post);
   }
 
-  async findByAuthor(authorId: string) {
+  async findByAuthor(authorId: string, pagination: PaginationDto) {
+    const offset = (pagination.page - 1) * pagination.limit;
+
     const author = await this.userModel.findByPk(authorId);
 
     if (!author) {
       throw new NotFoundException(`Author with id ${authorId} not found`);
     }
 
-    const posts = await this.postModel.findAll({
+    const { rows: posts, count } = await this.postModel.findAndCountAll({
       where: { authorId },
       include: [
         {
@@ -143,12 +161,25 @@ export class PostService {
           through: { attributes: [] },
         },
       ],
+      limit: pagination.limit,
+      offset,
+      order: [['createdAt', 'DESC']],
     });
 
-    return new SuccessResponse<Post[]>('Post Found', posts);
+    return new PaginationWrapper<Post[]>(
+      'Post Found',
+      posts,
+      count,
+      pagination.page,
+      pagination.limit,
+    );
   }
 
-  async update(id: string, updatePostDto: UpdatePostDto) {
+  async update(id: string, updatePostDto: UpdatePostDto, authorId: string) {
+    if (updatePostDto.authorId !== authorId) {
+      throw new ForbiddenException('You are not allowed to update this post');
+    }
+
     const post = await this.postModel.findByPk(id, {
       include: [
         {

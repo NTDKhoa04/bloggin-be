@@ -17,6 +17,12 @@ import { PassportModule } from '@nestjs/passport';
 import { DraftModule } from './draft/draft.module';
 import { AdminOnly } from './auth/guards/role.guard';
 import { Draft } from './draft/model/draft.model';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { FollowModule } from './follow/follow.module';
+import { CommentModule } from './comment/comment.module';
+import { Comment } from './comment/model/comment.model';
+import { Follow } from './follow/model/follow.model';
+import { FavoriteModule } from './favorite/favorite.module';
 
 @Module({
   imports: [
@@ -33,7 +39,7 @@ import { Draft } from './draft/model/draft.model';
         autoLoadModels: true,
         sync: { alter: true },
         logging: false,
-        models: [User, Post, Tag, Post_Tag, Draft],
+        models: [User, Post, Tag, Post_Tag, Draft, Comment, Follow],
       }),
     }),
     ScheduleModule.forRoot(),
@@ -44,6 +50,10 @@ import { Draft } from './draft/model/draft.model';
     PostTagModule,
     DraftModule,
     PassportModule.register({ session: true }),
+    CloudinaryModule,
+    FollowModule,
+    CommentModule,
+    FavoriteModule,
   ],
   controllers: [AppController],
   providers: [AppService, AdminOnly],

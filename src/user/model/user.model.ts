@@ -1,15 +1,19 @@
 import sequelize from 'sequelize';
 import {
   AllowNull,
+  BelongsToMany,
   Column,
   DataType,
   Default,
+  HasMany,
   Model,
   PrimaryKey,
   Table,
   Unique,
 } from 'sequelize-typescript';
 import { LoginMethodEmun } from 'src/shared/enum/login-method.enum';
+import { Comment } from 'src/comment/model/comment.model';
+import { Follow } from 'src/follow/model/follow.model';
 @Table
 export class User extends Model {
   @PrimaryKey
@@ -54,4 +58,13 @@ export class User extends Model {
     type: DataType.ENUM(...Object.values(LoginMethodEmun)),
   })
   loginMethod: LoginMethodEmun;
+
+  @HasMany(() => Comment)
+  comments: Comment[];
+
+  @BelongsToMany(() => User, () => Follow, 'followerId', 'authorId')
+  following: User[];
+
+  @BelongsToMany(() => User, () => Follow, 'authorId', 'followerId')
+  followers: User[];
 }

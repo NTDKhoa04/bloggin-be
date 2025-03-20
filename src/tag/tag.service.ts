@@ -2,8 +2,12 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateTagDto } from './dto/create-tag.dto';
 import { InjectModel } from '@nestjs/sequelize';
 import { Tag } from './model/tag.model';
-import { SuccessResponse } from 'src/shared/classes/success-response.class';
+import {
+  PaginationWrapper,
+  SuccessResponse,
+} from 'src/shared/classes/success-response.class';
 import { Op } from 'sequelize';
+import { PaginationDto } from 'src/shared/classes/pagination.dto';
 
 @Injectable()
 export class TagService {
@@ -15,12 +19,23 @@ export class TagService {
     return new SuccessResponse<Tag>('Tag created successfully', post);
   }
 
-  async findAll(name?: string) {
-    const tags = await this.tagModel.findAll({
+  async findAll(pagination: PaginationDto, name?: string) {
+    const offset = (pagination.page - 1) * pagination.limit;
+
+    const { rows: tags, count } = await this.tagModel.findAndCountAll({
       where: name ? { name: { [Op.iLike]: `%${name}%` } } : undefined,
+      offset,
+      limit: pagination.limit,
+      order: [['createdAt', 'DESC']],
     });
 
-    return new SuccessResponse<Tag[]>('Tags found', tags);
+    return new PaginationWrapper<Tag[]>(
+      'Tags found',
+      tags,
+      count,
+      pagination.page,
+      pagination.limit,
+    );
   }
 
   async findOne(id: string) {

@@ -7,10 +7,12 @@ import {
   DataType,
   Default,
   ForeignKey,
+  HasMany,
   Model,
   PrimaryKey,
   Table,
 } from 'sequelize-typescript';
+import { Comment } from 'src/comment/model/comment.model';
 import { Post_Tag } from 'src/post-tag/model/post-tag.model';
 import { Tag } from 'src/tag/model/tag.model';
 import { User } from 'src/user/model/user.model';
@@ -48,4 +50,7 @@ export class Post extends Model {
 
   @BelongsTo(() => User)
   author: User;
+
+  @HasMany(() => Comment)
+  comments: Comment[];
 }

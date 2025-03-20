@@ -24,9 +24,9 @@ export class CommentService {
   ) {}
 
   async create(createCommentDto: CreateCommentDto) {
-    const { userId, postId, content } = createCommentDto;
+    const { authorId, postId, content } = createCommentDto;
 
-    const user = this.userModel.findByPk(userId);
+    const user = this.userModel.findByPk(authorId);
     const post = this.postModel.findByPk(postId);
 
     if (!user) {
@@ -79,7 +79,7 @@ export class CommentService {
       throw new NotFoundException(`Comment with id ${id} not found`);
     }
 
-    if (userId !== comment.userId) {
+    if (comment.authorId !== userId) {
       throw new ForbiddenException(
         'You are not authorized to update this comment',
       );

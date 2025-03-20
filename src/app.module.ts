@@ -21,6 +21,8 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { FollowModule } from './follow/follow.module';
 import { CommentModule } from './comment/comment.module';
 import { Comment } from './comment/model/comment.model';
+import { Follow } from './follow/model/follow.model';
+import { FavoriteModule } from './favorite/favorite.module';
 
 @Module({
   imports: [
@@ -37,7 +39,7 @@ import { Comment } from './comment/model/comment.model';
         autoLoadModels: true,
         sync: { alter: true },
         logging: false,
-        models: [User, Post, Tag, Post_Tag, Draft, Comment],
+        models: [User, Post, Tag, Post_Tag, Draft, Comment, Follow],
       }),
     }),
     ScheduleModule.forRoot(),
@@ -51,6 +53,7 @@ import { Comment } from './comment/model/comment.model';
     CloudinaryModule,
     FollowModule,
     CommentModule,
+    FavoriteModule,
   ],
   controllers: [AppController],
   providers: [AppService, AdminOnly],

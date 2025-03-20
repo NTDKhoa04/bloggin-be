@@ -22,7 +22,7 @@ export class Comment extends Model {
   @AllowNull(false)
   @ForeignKey(() => User)
   @Column
-  userId: string;
+  authorId: string;
 
   @ForeignKey(() => Post)
   @Column

@@ -1,14 +1,21 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
   Query,
   UseGuards,
 } from '@nestjs/common';
+import { LoggedInOnly } from 'src/auth/guards/authenticated.guard';
+import {
+  PaginationDto,
+  PaginationSchema,
+} from 'src/shared/classes/pagination.dto';
+import { OwnerCheck } from 'src/shared/decorators/owner.decorator';
+import { ZodValidationPipe } from 'src/shared/pipes/zod.pipe';
 import { CommentService } from './comment.service';
 import {
   CreateCommentDto,
@@ -18,14 +25,8 @@ import {
   UpdateCommentDto,
   UpdateCommentSchema,
 } from './dto/update-comment.dto';
-import { ZodValidationPipe } from 'src/shared/pipes/zod.pipe';
-import {
-  PaginationDto,
-  PaginationSchema,
-} from 'src/shared/classes/pagination.dto';
 import { User } from 'src/user/model/user.model';
 import { Me } from 'src/shared/decorators/user.decorator';
-import { LoggedInOnly } from 'src/auth/guards/authenticated.guard';
 
 @Controller({ path: 'comment', version: '1' })
 export class CommentController {
@@ -56,7 +57,7 @@ export class CommentController {
     updateCommentDto: UpdateCommentDto,
     @Me() user: Partial<User>,
   ) {
-    const { id: userId, ...userWithoutId } = user;
+    const { id: userId } = user;
 
     return this.commentService.update(id, updateCommentDto, userId ?? '');
   }

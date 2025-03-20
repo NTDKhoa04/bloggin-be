@@ -27,6 +27,8 @@ export class DraftService {
   }
 
   async findByAuthor(authorId: string, pagination: PaginationDto) {
+    const offset = (pagination.page - 1) * pagination.limit;
+
     const author = await this.userModel.findByPk(authorId);
 
     if (!author) {
@@ -35,6 +37,9 @@ export class DraftService {
 
     const { rows: drafts, count } = await this.DraftModel.findAndCountAll({
       where: { authorId },
+      offset,
+      limit: pagination.limit,
+      order: [['updatedAt', 'DESC']],
     });
 
     return new PaginationWrapper<Draft[]>(

@@ -15,6 +15,7 @@ import { Tag } from 'src/tag/model/tag.model';
 import { Sequelize } from 'sequelize-typescript';
 import { User } from 'src/user/model/user.model';
 import { PaginationDto } from 'src/shared/classes/pagination.dto';
+import { Comment } from 'src/comment/model/comment.model';
 
 const USER_ATTRIBUTES = [
   'username',
@@ -30,6 +31,7 @@ export class PostService {
     @InjectModel(Post) private postModel: typeof Post,
     @InjectModel(User) private userModel: typeof User,
     @InjectModel(Tag) private tagModel: typeof Tag,
+    @InjectModel(Comment) private commentModel: typeof Comment,
     private sequelize: Sequelize,
   ) {}
 
@@ -105,6 +107,16 @@ export class PostService {
           through: { attributes: [] },
         },
       ],
+      attributes: {
+        include: [
+          [
+            Sequelize.literal(
+              `(SELECT COUNT(*) FROM "Comments" WHERE "Comments"."postId" = "Post"."id")`,
+            ),
+            'commentCount',
+          ],
+        ],
+      },
       limit: pagination.limit,
       offset,
       order: [['createdAt', 'DESC']],
@@ -131,6 +143,16 @@ export class PostService {
           through: { attributes: [] },
         },
       ],
+      attributes: {
+        include: [
+          [
+            Sequelize.literal(
+              `(SELECT COUNT(*) FROM "Comments" WHERE "Comments"."postId" = "Post"."id")`,
+            ),
+            'commentCount',
+          ],
+        ],
+      },
     });
 
     if (!post) {

@@ -23,8 +23,8 @@ export class CommentService {
     @InjectModel(Post) private postModel: typeof Post,
   ) {}
 
-  async create(createCommentDto: CreateCommentDto) {
-    const { authorId, postId, content } = createCommentDto;
+  async create(createCommentDto: CreateCommentDto, authorId: string) {
+    const { postId, content } = createCommentDto;
 
     const user = this.userModel.findByPk(authorId);
     const post = this.postModel.findByPk(postId);
@@ -37,7 +37,10 @@ export class CommentService {
       throw new NotFoundException('Post not found');
     }
 
-    const comment = await this.commentModel.create(createCommentDto);
+    const comment = await this.commentModel.create({
+      authorId: authorId,
+      ...createCommentDto,
+    });
 
     return new SuccessResponse<Comment>(
       'Comment created successfully',
@@ -55,6 +58,7 @@ export class CommentService {
       include: [
         {
           model: User,
+          as: 'author',
           attributes: ['id', 'displayName', 'avatarUrl'],
         },
       ],

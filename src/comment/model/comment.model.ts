@@ -32,5 +32,5 @@ export class Comment extends Model {
   content: string;
 
   @BelongsTo(() => User)
-  user: User;
+  author: User;
 }

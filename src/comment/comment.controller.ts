@@ -37,8 +37,10 @@ export class CommentController {
   create(
     @Body(new ZodValidationPipe(CreateCommentSchema))
     createCommentDto: CreateCommentDto,
+    @Me() user: Partial<User>,
   ) {
-    return this.commentService.create(createCommentDto);
+    const { id: userId } = user;
+    return this.commentService.create(createCommentDto, userId ?? '');
   }
 
   @Get('post/:postId')

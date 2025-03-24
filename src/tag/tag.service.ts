@@ -26,7 +26,6 @@ export class TagService {
       where: name ? { name: { [Op.iLike]: `%${name}%` } } : undefined,
       offset,
       limit: pagination.limit,
-      order: [['createdAt', 'DESC']],
     });
 
     return new PaginationWrapper<Tag[]>(

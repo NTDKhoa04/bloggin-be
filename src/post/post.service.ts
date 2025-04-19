@@ -57,9 +57,12 @@ export class PostService {
         throw new Error('Failed to create post.');
       }
 
+      //remove the duplicate tags
+      const uniqueTags = Array.from(new Set(tags));
+
       // Find existing tags
       const existingTags = await Tag.findAll({
-        where: { name: tags },
+        where: { name: uniqueTags },
         transaction,
       });
 
@@ -93,6 +96,7 @@ export class PostService {
     }
   }
 
+  //implement pagination with cursor based pagination
   async findAll(pagination: PaginationDto) {
     const offset = (pagination.page - 1) * pagination.limit;
 

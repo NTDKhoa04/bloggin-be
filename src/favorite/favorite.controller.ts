@@ -56,6 +56,7 @@ export class FavoriteController {
     return this.favoriteService.remove(removeFavoriteDto, userId ?? '');
   }
 
+  @UseGuards(LoggedInOnly)
   @Get()
   getFavoriteers(
     @Query(new ZodValidationPipe(PaginationSchema)) pagination: PaginationDto,

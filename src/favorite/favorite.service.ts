@@ -13,6 +13,10 @@ import {
   SuccessResponse,
 } from 'src/shared/classes/success-response.class';
 import { Post } from 'src/post/model/post.model';
+import { User } from 'src/user/model/user.model';
+import { USER_ATTRIBUTES } from 'src/post/post.service';
+import { Tag } from 'src/tag/model/tag.model';
+import { Sequelize } from 'sequelize-typescript';
 
 @Injectable()
 export class FavoriteService {
@@ -63,6 +67,33 @@ export class FavoriteService {
 
     const { rows: favorite, count } = await this.favoriteModel.findAndCountAll({
       where: { followerId },
+      attributes: ['followerId'],
+      include: [
+        {
+          model: Post,
+          as: 'post',
+          include: [
+            {
+              model: User,
+              attributes: USER_ATTRIBUTES,
+            },
+            {
+              model: Tag,
+              through: { attributes: [] },
+            },
+          ],
+          attributes: {
+            include: [
+              [
+                Sequelize.literal(
+                  `(SELECT COUNT(*) FROM "Comments" WHERE "Comments"."postId" = "post"."id")`,
+                ),
+                'commentCount',
+              ],
+            ],
+          },
+        },
+      ],
       offset,
       limit: pagination.limit,
     });

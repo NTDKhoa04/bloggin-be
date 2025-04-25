@@ -17,7 +17,7 @@ import { User } from 'src/user/model/user.model';
 import { PaginationDto } from 'src/shared/classes/pagination.dto';
 import { Comment } from 'src/comment/model/comment.model';
 
-const USER_ATTRIBUTES = [
+export const USER_ATTRIBUTES = [
   'username',
   'displayName',
   'avatarUrl',

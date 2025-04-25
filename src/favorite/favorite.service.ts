@@ -63,13 +63,6 @@ export class FavoriteService {
 
     const { rows: favorite, count } = await this.favoriteModel.findAndCountAll({
       where: { followerId },
-      attributes: ['followerId'],
-      include: [
-        {
-          model: Post,
-          attributes: ['id', 'title', 'content', 'createdAt', 'updatedAt'],
-        },
-      ],
       offset,
       limit: pagination.limit,
     });
@@ -81,5 +74,22 @@ export class FavoriteService {
       pagination.page ?? 1,
       pagination.limit ?? 10,
     );
+  }
+
+  async getFavoriteCount(
+    postId: string,
+    userId?: string,
+  ): Promise<{ postId: string; count: number; isFavorite: boolean | null }> {
+    const post = await this.postModel.findOne({
+      where: { id: postId },
+    });
+    if (!post) throw new NotFoundException(`Post with id ${postId} not found`);
+    const { count, rows } = await this.favoriteModel.findAndCountAll({
+      where: { postId: post.id },
+    });
+    const isFavorite = userId
+      ? rows.some((row) => row.followerId === userId)
+      : null;
+    return { postId: post.id, count: count, isFavorite: isFavorite };
   }
 }

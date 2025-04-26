@@ -94,11 +94,17 @@ export class CommentService {
     return new SuccessResponse<Comment>('Comment updated', comment);
   }
 
-  async remove(id: string) {
+  async remove(id: string, userId: string) {
     const comment = await this.commentModel.findByPk(id);
 
     if (!comment) {
       throw new NotFoundException(`Comment with id ${id} not found`);
+    }
+
+    if (comment.authorId !== userId) {
+      throw new ForbiddenException(
+        'You are not authorized to delete this comment',
+      );
     }
 
     await comment.destroy();

@@ -65,7 +65,7 @@ export class CommentController {
 
   @UseGuards(LoggedInOnly)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.commentService.remove(id);
+  remove(@Param('id') id: string, @Me() user: Partial<User>) {
+    return this.commentService.remove(id, user.id ?? '');
   }
 }

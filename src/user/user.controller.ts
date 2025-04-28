@@ -5,7 +5,9 @@ import {
   Param,
   Patch,
   Query,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto, CreateUserSchema } from './dtos/create-user.dto';
@@ -19,6 +21,7 @@ import {
 import { Me } from 'src/shared/decorators/user.decorator';
 import { User } from './model/user.model';
 import { LoggedInOnly } from 'src/auth/guards/authenticated.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller({
   path: 'user',
@@ -26,6 +29,17 @@ import { LoggedInOnly } from 'src/auth/guards/authenticated.guard';
 })
 export class UserController {
   constructor(private userService: UserService) {}
+
+  @UseGuards(LoggedInOnly)
+  @Patch('avatar')
+  @UseInterceptors(FileInterceptor('file'))
+  async updateAvatar(
+    @Me() { id }: Partial<User>,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    const result = await this.userService.updateAvatar(id!, file);
+    return new SuccessResponse('Avatar updated', result);
+  }
 
   @UseGuards(LoggedInOnly)
   @Patch()

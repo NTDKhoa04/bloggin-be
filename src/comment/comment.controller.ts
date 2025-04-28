@@ -14,8 +14,9 @@ import {
   PaginationDto,
   PaginationSchema,
 } from 'src/shared/classes/pagination.dto';
-import { OwnerCheck } from 'src/shared/decorators/owner.decorator';
+import { Me } from 'src/shared/decorators/user.decorator';
 import { ZodValidationPipe } from 'src/shared/pipes/zod.pipe';
+import { User } from 'src/user/model/user.model';
 import { CommentService } from './comment.service';
 import {
   CreateCommentDto,
@@ -25,8 +26,6 @@ import {
   UpdateCommentDto,
   UpdateCommentSchema,
 } from './dto/update-comment.dto';
-import { User } from 'src/user/model/user.model';
-import { Me } from 'src/shared/decorators/user.decorator';
 
 @Controller({ path: 'comment', version: '1' })
 export class CommentController {
@@ -66,7 +65,7 @@ export class CommentController {
 
   @UseGuards(LoggedInOnly)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.commentService.remove(id);
+  remove(@Param('id') id: string, @Me() user: Partial<User>) {
+    return this.commentService.remove(id, user.id ?? '');
   }
 }

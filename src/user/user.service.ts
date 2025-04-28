@@ -18,13 +18,31 @@ import {
 import { QueryUserDto } from './dtos/query-user.dto';
 import * as argon2 from 'argon2';
 import { ChangePasswordDto } from './dtos/change-password.dto';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectModel(User)
     private userModel: typeof User,
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
+
+  async updateAvatar(id: string, file: Express.Multer.File): Promise<User> {
+    const user = await this.userModel.findOne({ where: { id } });
+    if (!user) throw new NotFoundException(`User with id ${id} not found`);
+    try {
+      const { secure_url } = await this.cloudinaryService.uploadFile(file);
+      await user.update(
+        { avatarUrl: secure_url },
+        { where: { id }, returning: true },
+      );
+      return secure_url;
+    } catch (err) {
+      throw new InternalServerErrorException(err);
+    }
+  }
+
   async findUserById(id: string): Promise<User> {
     const res = await this.userModel.findOne({ where: { id: id } });
     if (!res) throw new NotFoundException(`User with id ${id} not found`);

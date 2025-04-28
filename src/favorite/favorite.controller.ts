@@ -26,6 +26,7 @@ import { Me } from 'src/shared/decorators/user.decorator';
 import { User } from 'src/user/model/user.model';
 import { ZodValidationPipe } from 'src/shared/pipes/zod.pipe';
 import { LoggedInOnly } from 'src/auth/guards/authenticated.guard';
+import { SuccessResponse } from 'src/shared/classes/success-response.class';
 
 @Controller({ path: 'favorite', version: '1' })
 export class FavoriteController {
@@ -55,6 +56,7 @@ export class FavoriteController {
     return this.favoriteService.remove(removeFavoriteDto, userId ?? '');
   }
 
+  @UseGuards(LoggedInOnly)
   @Get()
   getFavoriteers(
     @Query(new ZodValidationPipe(PaginationSchema)) pagination: PaginationDto,
@@ -62,5 +64,14 @@ export class FavoriteController {
   ) {
     const { id, ...userWithoutId } = user;
     return this.favoriteService.getFavorite(id ? id : '', pagination);
+  }
+
+  @Get(':postId/count')
+  async getFavoriteCount(
+    @Param('postId') postId: string,
+    @Me() user?: Partial<User>,
+  ) {
+    const res = await this.favoriteService.getFavoriteCount(postId, user?.id);
+    return new SuccessResponse('Success', res);
   }
 }

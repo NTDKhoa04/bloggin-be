@@ -13,6 +13,10 @@ import {
   SuccessResponse,
 } from 'src/shared/classes/success-response.class';
 import { Post } from 'src/post/model/post.model';
+import { User } from 'src/user/model/user.model';
+import { USER_ATTRIBUTES } from 'src/post/post.service';
+import { Tag } from 'src/tag/model/tag.model';
+import { Sequelize } from 'sequelize-typescript';
 
 @Injectable()
 export class FavoriteService {
@@ -67,7 +71,27 @@ export class FavoriteService {
       include: [
         {
           model: Post,
-          attributes: ['id', 'title', 'content', 'createdAt', 'updatedAt'],
+          as: 'post',
+          include: [
+            {
+              model: User,
+              attributes: USER_ATTRIBUTES,
+            },
+            {
+              model: Tag,
+              through: { attributes: [] },
+            },
+          ],
+          attributes: {
+            include: [
+              [
+                Sequelize.literal(
+                  `(SELECT COUNT(*) FROM "Comments" WHERE "Comments"."postId" = "post"."id")`,
+                ),
+                'commentCount',
+              ],
+            ],
+          },
         },
       ],
       offset,
@@ -81,5 +105,22 @@ export class FavoriteService {
       pagination.page ?? 1,
       pagination.limit ?? 10,
     );
+  }
+
+  async getFavoriteCount(
+    postId: string,
+    userId?: string,
+  ): Promise<{ postId: string; count: number; isFavorite: boolean | null }> {
+    const post = await this.postModel.findOne({
+      where: { id: postId },
+    });
+    if (!post) throw new NotFoundException(`Post with id ${postId} not found`);
+    const { count, rows } = await this.favoriteModel.findAndCountAll({
+      where: { postId: post.id },
+    });
+    const isFavorite = userId
+      ? rows.some((row) => row.followerId === userId)
+      : null;
+    return { postId: post.id, count: count, isFavorite: isFavorite };
   }
 }

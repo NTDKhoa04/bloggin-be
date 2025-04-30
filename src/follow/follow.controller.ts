@@ -25,6 +25,7 @@ import { LoggedInOnly } from 'src/auth/guards/authenticated.guard';
 export class FollowController {
   constructor(private readonly followService: FollowService) {}
 
+  @UseGuards(LoggedInOnly)
   @Post()
   @UseGuards(LoggedInOnly)
   create(@Body() createFollowDto: CreateFollowDto, @Me() user: Partial<User>) {
@@ -33,6 +34,7 @@ export class FollowController {
     return this.followService.create(createFollowDto, followerId ?? '');
   }
 
+  @UseGuards(LoggedInOnly)
   @Delete()
   @UseGuards(LoggedInOnly)
   remove(@Body() removeFollowDto: RemoveFollowDto, @Me() user: Partial<User>) {
@@ -41,7 +43,8 @@ export class FollowController {
     return this.followService.remove(removeFollowDto, followerId ?? '');
   }
 
-  @Get('followers')
+  @UseGuards(LoggedInOnly)
+  @Get('follower')
   getFollowers(
     @Query(new ZodValidationPipe(PaginationSchema)) pagination: PaginationDto,
     @Me() user: Partial<User>,
@@ -50,6 +53,7 @@ export class FollowController {
     return this.followService.getFollowers(id ? id : '', pagination);
   }
 
+  @UseGuards(LoggedInOnly)
   @Get('following')
   getFollowing(
     @Query(new ZodValidationPipe(PaginationSchema)) pagination: PaginationDto,
@@ -57,5 +61,21 @@ export class FollowController {
   ) {
     const { id, ...userWithoutId } = user;
     return this.followService.getFollowing(id ? id : '', pagination);
+  }
+
+  @Get(':userId/follower')
+  getUserFollower(
+    @Query(new ZodValidationPipe(PaginationSchema)) pagination: PaginationDto,
+    @Param('userId') userId: string,
+  ) {
+    return this.followService.getFollowers(userId, pagination);
+  }
+
+  @Get(':userId/following')
+  getUserFollowing(
+    @Query(new ZodValidationPipe(PaginationSchema)) pagination: PaginationDto,
+    @Param('userId') userId: string,
+  ) {
+    return this.followService.getFollowing(userId, pagination);
   }
 }

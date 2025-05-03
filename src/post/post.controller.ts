@@ -51,12 +51,11 @@ export class PostController {
     return this.postService.findAll(pagination);
   }
 
-  @Get('/author')
+  @Get('/author/:id')
   async getPostsByAuthor(
-    @Me() user: Partial<User>,
+    @Param('id') id: string,
     @Query(new ZodValidationPipe(PaginationSchema)) pagination: PaginationDto,
   ) {
-    const { id, ...userWithoutId } = user;
     return this.postService.findByAuthor(id ? id : '', pagination);
   }
 

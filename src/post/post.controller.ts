@@ -59,6 +59,15 @@ export class PostController {
     return this.postService.findByAuthor(id ? id : '', pagination);
   }
 
+  @UseGuards(LoggedInOnly)
+  @Get('/following')
+  async getFollowingPosts(
+    @Me() { id }: Partial<User>,
+    @Query(new ZodValidationPipe(PaginationSchema)) pagination: PaginationDto,
+  ) {
+    await this.postService.getFollowingPost(id!, pagination);
+  }
+
   @Get('/:id')
   async getPostById(@Param('id') id: string) {
     return this.postService.findOne(id);

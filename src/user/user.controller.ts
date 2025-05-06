@@ -2,9 +2,11 @@ import {
   Body,
   Controller,
   Get,
+  HttpStatus,
   Param,
   Patch,
   Query,
+  Res,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -22,6 +24,7 @@ import { Me } from 'src/shared/decorators/user.decorator';
 import { User } from './model/user.model';
 import { LoggedInOnly } from 'src/auth/guards/authenticated.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { Response } from 'express';
 
 @Controller({
   path: 'user',
@@ -53,11 +56,15 @@ export class UserController {
       ),
     )
     userInfo: Partial<CreateUserDto>,
+    @Res({ passthrough: true }) res: Response,
   ) {
-    const { password, ...data } = await this.userService.updateUser(
-      id!,
-      userInfo,
-    );
+    const user = await this.userService.updateUser(id!, userInfo);
+    console.log(user);
+    if (!user) {
+      res.statusCode = HttpStatus.NOT_MODIFIED;
+      return;
+    }
+    const { password, ...data } = user;
     return new SuccessResponse('User updated', data);
   }
 
@@ -87,7 +94,8 @@ export class UserController {
 
   @Get(':id')
   async findUserById(@Param('id') id: string) {
-    const res = await this.userService.findUserById(id);
+    const user = await this.userService.findUserById(id);
+    const { password, ...res } = user.dataValues;
     return new SuccessResponse('User found', res);
   }
 }

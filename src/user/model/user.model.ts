@@ -43,6 +43,14 @@ export class User extends Model {
   @Column
   avatarUrl: string;
 
+  @AllowNull(true)
+  @Column
+  specialties: string;
+
+  @AllowNull(true)
+  @Column
+  about: string;
+
   @Default(false)
   @Column
   isVerified: boolean;

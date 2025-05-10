@@ -16,6 +16,10 @@ import { Sequelize } from 'sequelize-typescript';
 import { User } from 'src/user/model/user.model';
 import { PaginationDto } from 'src/shared/classes/pagination.dto';
 import { Comment } from 'src/comment/model/comment.model';
+import extractTextFromPostContent from 'src/shared/utils/extractTextFromPostContent';
+import { TtsService } from 'src/tts/tts.service';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import extractAudioCloudinaryPublicId from 'src/shared/utils/extractAudioPublicIdFromUrl';
 
 export const USER_ATTRIBUTES = [
   'username',
@@ -33,6 +37,8 @@ export class PostService {
     @InjectModel(Tag) private tagModel: typeof Tag,
     @InjectModel(Comment) private commentModel: typeof Comment,
     private sequelize: Sequelize,
+    private readonly ttsService: TtsService,
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
 
   async create(createPostDto: CreatePostDto) {
@@ -224,6 +230,7 @@ export class PostService {
     }
 
     await post.update({ ...updatePostDto });
+    await this.deleteAudioResource(post);
     await post.save();
 
     return new SuccessResponse<Post>('Post updated successfully', post);
@@ -235,8 +242,78 @@ export class PostService {
       throw new NotFoundException(`Post with id ${id} not found`);
     }
 
+    await this.deleteAudioResource(post);
+
     await post.destroy();
 
     return new SuccessResponse<Post>('Post deleted successfully', undefined);
+  }
+
+  async synthesizePostById(postId: string, language: string) {
+    const post = await this.postModel.findByPk(postId);
+
+    if (!post) {
+      throw new NotFoundException('Post not found');
+    }
+
+    const audioExist = await this.checkIfAudioExists(post, language);
+
+    if (audioExist) {
+      return new SuccessResponse<string>(
+        'Audio exists',
+        language === 'english' ? post.enVoiceUrl : post.viVoiceUrl,
+      );
+    }
+
+    const content = extractTextFromPostContent(
+      JSON.parse(String(post.content ?? '')),
+    );
+
+    const audioUrl = await this.ttsService.synthesizeTextToFile(
+      content,
+      language,
+    );
+
+    if (language === 'english') {
+      post.enVoiceUrl = audioUrl;
+    } else if (language === 'vietnamese') {
+      post.viVoiceUrl = audioUrl;
+    }
+
+    await post.save();
+
+    return new SuccessResponse<String>('Synthesize completed', audioUrl);
+  }
+
+  async checkIfAudioExists(post: Post, language: string) {
+    if (language === 'english') {
+      return !!post.enVoiceUrl;
+    } else if (language === 'vietnamese') {
+      return !!post.viVoiceUrl;
+    } else {
+      return false;
+    }
+  }
+
+  async deleteAudioResource(post: Post) {
+    if (post.enVoiceUrl) {
+      const publicId = extractAudioCloudinaryPublicId(post.enVoiceUrl);
+      if (publicId) {
+        const result =
+          await this.cloudinaryService.removeAudioResourceByPublicId(publicId);
+
+        console.log('Audio en removed from Cloudinary:', result);
+      }
+    }
+
+    if (post.viVoiceUrl) {
+      const publicId = extractAudioCloudinaryPublicId(post.viVoiceUrl);
+      if (publicId) {
+        const result =
+          await this.cloudinaryService.removeAudioResourceByPublicId(publicId);
+
+        console.log('Audio vi removed from Cloudinary:', result);
+      }
+    }
   }
 }

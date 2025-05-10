@@ -37,6 +37,14 @@ export class Post extends Model {
   @Column(DataType.JSON)
   content: object;
 
+  @AllowNull(true)
+  @Column
+  enVoiceUrl: string;
+
+  @AllowNull(true)
+  @Column
+  viVoiceUrl: string;
+
   @Default(literal('CURRENT_TIMESTAMP'))
   @Column
   createdAt: Date;

@@ -42,6 +42,9 @@ lerna-debug.log*
 .env.production.local
 .env.local
 
+# secret files
+ggkey.json
+
 # temp directory
 .temp
 .tmp

@@ -59,7 +59,6 @@ export class UserController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const user = await this.userService.updateUser(id!, userInfo);
-    console.log(user);
     if (!user) {
       res.statusCode = HttpStatus.NOT_MODIFIED;
       return;

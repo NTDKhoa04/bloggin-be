@@ -34,7 +34,6 @@ export class AuthService {
     const user = await this.userModel.findOne({
       where: condition,
     });
-    console.log(user);
     const realUser = user?.dataValues;
     if (!realUser) throw new NotFoundException('User not found');
     const isPasswordCorrect = await argon2.verify(realUser.password, password);
@@ -50,11 +49,9 @@ export class AuthService {
       where: { email: userInfo.email },
     });
     if (user) {
-      console.log('User found with google account', user);
       return user;
     }
     const createdUser = await this.userModel.create(userInfo);
-    console.log('New user created with google account', createdUser);
     return createdUser;
   }
 

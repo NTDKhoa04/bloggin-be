@@ -25,7 +25,6 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
     refreshToken: string,
     profile: Profile,
   ): Promise<void> {
-    console.log(profile);
     if (!profile) throw new Error('Google profile not found');
     const userData: CreateGoogleUserDto = {
       username: profile.username ?? profile.displayName,

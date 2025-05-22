@@ -23,6 +23,7 @@ import { CommentModule } from './comment/comment.module';
 import { Comment } from './comment/model/comment.model';
 import { Follow } from './follow/model/follow.model';
 import { FavoriteModule } from './favorite/favorite.module';
+import { StatisticsModule } from './statistics/statistics.module';
 
 @Module({
   imports: [
@@ -54,6 +55,7 @@ import { FavoriteModule } from './favorite/favorite.module';
     FollowModule,
     CommentModule,
     FavoriteModule,
+    StatisticsModule,
   ],
   controllers: [AppController],
   providers: [AppService, AdminOnly],

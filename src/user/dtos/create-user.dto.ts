@@ -1,3 +1,4 @@
+import { spec } from 'node:test/reporters';
 import { LoginMethodEmun } from 'src/shared/enum/login-method.enum';
 import { z } from 'zod';
 
@@ -9,6 +10,8 @@ export const CreateUserSchema = z.object({
   avatarUrl: z.string().optional(),
   isVerified: z.boolean().optional(),
   loginMethod: z.nativeEnum(LoginMethodEmun).optional(),
+  specialties: z.string().optional(),
+  about: z.string().optional(),
 });
 
 export type CreateUserDto = z.infer<typeof CreateUserSchema>;

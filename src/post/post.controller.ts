@@ -1,8 +1,10 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
   Get,
+  NotFoundException,
   Param,
   Patch,
   Post,
@@ -20,6 +22,8 @@ import { User } from 'src/user/model/user.model';
 import { CreatePostDto, CreatePostSchema } from './dtos/create-post.dto';
 import { UpdatePostDto, UpdatePostSchema } from './dtos/update-post.dto';
 import { PostService } from './post.service';
+import { TtsService } from 'src/tts/tts.service';
+import extractTextFromPostContent from 'src/shared/utils/extractTextFromPostContent';
 
 @Controller({ path: 'post', version: '1' })
 export class PostController {
@@ -77,5 +81,13 @@ export class PostController {
   @Delete('/:id')
   async deletePost(@Param('id') id: string) {
     return this.postService.remove(id);
+  }
+
+  @Get('/synthesize/:postId')
+  async synthesizeTextToFile(
+    @Param('postId') postId: string,
+    @Query('language') language: string,
+  ) {
+    return await this.postService.synthesizePostById(postId, language);
   }
 }

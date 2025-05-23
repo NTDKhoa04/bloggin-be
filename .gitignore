@@ -46,6 +46,10 @@ lerna-debug.log*
 .temp
 .tmp
 
+
+# secret files
+ggkey.json
+
 # Runtime data
 pids
 *.pid

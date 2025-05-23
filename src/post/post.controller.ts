@@ -75,11 +75,11 @@ export class PostController {
     return this.postService.remove(id);
   }
 
-  @Post('/synthesize/:postId')
+  @Get('/synthesize/:postId')
   async synthesizeTextToFile(
     @Param('postId') postId: string,
     @Query('language') language: string,
   ) {
-    return this.postService.synthesizePostById(postId, language);
+    return await this.postService.synthesizePostById(postId, language);
   }
 }

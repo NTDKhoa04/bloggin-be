@@ -20,6 +20,7 @@ import extractTextFromPostContent from 'src/shared/utils/extractTextFromPostCont
 import { TtsService } from 'src/tts/tts.service';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import extractAudioCloudinaryPublicId from 'src/shared/utils/extractAudioPublicIdFromUrl';
+import generateSafeSSML from 'src/shared/utils/generateSafeSSML';
 
 export const USER_ATTRIBUTES = [
   'username',
@@ -261,22 +262,24 @@ export class PostService {
     if (audioExist) {
       return new SuccessResponse<string>(
         'Audio exists',
-        language === 'english' ? post.enVoiceUrl : post.viVoiceUrl,
+        language === 'en' ? post.enVoiceUrl : post.viVoiceUrl,
       );
     }
 
-    const content = extractTextFromPostContent(
+    const extractContent = extractTextFromPostContent(
       JSON.parse(String(post.content ?? '')),
     );
 
+    const content = generateSafeSSML(extractContent);
+    console.log('Content:', content);
     const audioUrl = await this.ttsService.synthesizeTextToFile(
       content,
       language,
     );
 
-    if (language === 'english') {
+    if (language === 'en') {
       post.enVoiceUrl = audioUrl;
-    } else if (language === 'vietnamese') {
+    } else if (language === 'vn') {
       post.viVoiceUrl = audioUrl;
     }
 
@@ -286,9 +289,9 @@ export class PostService {
   }
 
   async checkIfAudioExists(post: Post, language: string) {
-    if (language === 'english') {
+    if (language === 'en') {
       return !!post.enVoiceUrl;
-    } else if (language === 'vietnamese') {
+    } else if (language === 'vn') {
       return !!post.viVoiceUrl;
     } else {
       return false;

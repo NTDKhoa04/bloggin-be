@@ -1,5 +1,6 @@
 import { Controller, Post } from '@nestjs/common';
 import { TtsService } from './tts.service';
+import generateSafeSSML from 'src/shared/utils/generateSafeSSML';
 
 @Controller({ path: 'tts', version: '1' })
 export class TtsController {
@@ -8,8 +9,8 @@ export class TtsController {
   @Post()
   createAudio() {
     return this.ttsService.synthesizeTextToFile(
-      'Xin chào mọi người, tôi là khoa múp!',
-      'english',
+      generateSafeSSML('Xin chào mọi người, tôi là khoa múp!'),
+      '',
     );
   }
 }

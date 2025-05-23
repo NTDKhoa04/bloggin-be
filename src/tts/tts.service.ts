@@ -4,26 +4,34 @@ import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 
 @Injectable()
 export class TtsService {
-  private client: textToSpeech.TextToSpeechClient;
+  private client: textToSpeech.v1beta1.TextToSpeechClient;
 
   constructor(private readonly cloudinaryService: CloudinaryService) {
-    this.client = new textToSpeech.TextToSpeechClient();
+    this.client = new textToSpeech.v1beta1.TextToSpeechClient();
   }
 
   async synthesizeTextToFile(text: string, language: string) {
-    const request: textToSpeech.protos.google.cloud.texttospeech.v1.ISynthesizeSpeechRequest =
+    console.log(text);
+
+    const request: textToSpeech.protos.google.cloud.texttospeech.v1beta1.ISynthesizeSpeechRequest =
       {
-        input: { text },
+        input: { ssml: text },
         voice: {
-          languageCode: language === 'english' ? 'en-US' : 'vi-VN',
+          languageCode: language === 'en' ? 'en-US' : 'vi-VN',
           ssmlGender: 'NEUTRAL',
         },
         audioConfig: {
           audioEncoding: 'MP3',
         },
+        enableTimePointing: [
+          textToSpeech.protos.google.cloud.texttospeech.v1beta1
+            .SynthesizeSpeechRequest.TimepointType.SSML_MARK,
+        ],
       };
 
     const [response] = await this.client.synthesizeSpeech(request);
+
+    console.log(response.timepoints);
 
     const audioBuffer = response.audioContent as Buffer;
     const cloudinaryResult =

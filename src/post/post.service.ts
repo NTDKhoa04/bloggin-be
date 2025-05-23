@@ -16,6 +16,7 @@ import { Sequelize } from 'sequelize-typescript';
 import { User } from 'src/user/model/user.model';
 import { PaginationDto } from 'src/shared/classes/pagination.dto';
 import { Comment } from 'src/comment/model/comment.model';
+import { Follow } from 'src/follow/model/follow.model';
 import extractTextFromPostContent from 'src/shared/utils/extractTextFromPostContent';
 import { TtsService } from 'src/tts/tts.service';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
@@ -35,6 +36,7 @@ export class PostService {
   constructor(
     @InjectModel(Post) private postModel: typeof Post,
     @InjectModel(User) private userModel: typeof User,
+    @InjectModel(Follow) private followModel: typeof Follow,
     @InjectModel(Tag) private tagModel: typeof Tag,
     @InjectModel(Comment) private commentModel: typeof Comment,
     private sequelize: Sequelize,
@@ -206,6 +208,24 @@ export class PostService {
       pagination.page,
       pagination.limit,
     );
+  }
+
+  async getFollowingPost(userId: string, pagination: PaginationDto) {
+    //find the author that the user is following
+    const data = await this.followModel.findAll({
+      where: { followerId: userId },
+    });
+    const followings: Follow[] = data.map((follow) => {
+      return follow.dataValues;
+    });
+
+    let resultPosts: Post[];
+    followings.forEach(async (following, index) => {
+      const post = await this.postModel.findAll({
+        where: { authorId: following.authorId },
+      });
+      console.log(`post on ${index} itteration: `, post);
+    });
   }
 
   async update(id: string, updatePostDto: UpdatePostDto, authorId: string) {

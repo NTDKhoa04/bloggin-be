@@ -59,14 +59,13 @@ export class UserService {
   async updateUser(
     id: string,
     userInfo: Partial<CreateUserDto>,
-  ): Promise<User> {
+  ): Promise<User | null> {
     try {
       const [rows, res] = await this.userModel.update(
         { ...userInfo },
         { where: { id }, returning: true },
       );
-      if (rows === 0)
-        throw new NotFoundException(`User with id ${id} not found`);
+      if (rows === 0) return null;
       return res[0].dataValues as User;
     } catch (err) {
       if (err instanceof NotFoundException) {

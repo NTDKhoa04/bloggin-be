@@ -14,7 +14,12 @@ async function bootstrap() {
   app.enableVersioning();
   const configService = app.get<ConfigService>(ConfigService);
   const redisClient = createClient({
-    url: 'redis://redis',
+    username: process.env.REDIS_USERNAME,
+    password: process.env.REDIS_PASSWORD,
+    socket: {
+      host: process.env.REDIS_HOST,
+      port: 16752,
+    },
   });
   redisClient.connect().catch((err) => {
     console.error(err);

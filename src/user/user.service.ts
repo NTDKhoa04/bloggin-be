@@ -33,7 +33,7 @@ export class UserService {
     const user = await this.userModel.findOne({ where: { id } });
     if (!user) throw new NotFoundException(`User with id ${id} not found`);
     try {
-      const { secure_url } = await this.cloudinaryService.uploadFile(file);
+      const { secure_url } = await this.cloudinaryService.uploadImage(file);
       await user.update(
         { avatarUrl: secure_url },
         { where: { id }, returning: true },

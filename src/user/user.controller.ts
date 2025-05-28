@@ -84,11 +84,7 @@ export class UserController {
     query: Partial<QueryUserDto>,
   ) {
     const res = await this.userService.findUsers(query);
-    const formatedRes = res.map((user) => {
-      const { password, ...data } = user.dataValues;
-      return data;
-    });
-    return new SuccessResponse('Users found', formatedRes);
+    return new SuccessResponse('Users found', res);
   }
 
   @Get(':id')

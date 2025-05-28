@@ -1,30 +1,31 @@
 import {
   ConflictException,
-  HttpCode,
   HttpStatus,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
-  NotImplementedException,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/sequelize';
-import { User } from './model/user.model';
-import { CreateUserDto, CreateUserSchema } from './dtos/create-user.dto';
+import { InjectConnection, InjectModel } from '@nestjs/sequelize';
+import * as argon2 from 'argon2';
 import { UniqueConstraintError } from 'sequelize';
+import { Sequelize } from 'sequelize-typescript';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import {
   ValidationError,
   ValidationErrorDetail,
 } from 'src/shared/classes/validation-error.class';
-import { QueryUserDto } from './dtos/query-user.dto';
-import * as argon2 from 'argon2';
 import { ChangePasswordDto } from './dtos/change-password.dto';
-import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { CreateUserDto } from './dtos/create-user.dto';
+import { QueryUserDto } from './dtos/query-user.dto';
+import { User } from './model/user.model';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectModel(User)
     private userModel: typeof User,
+    @InjectConnection()
+    private readonly sequelize: Sequelize,
     private readonly cloudinaryService: CloudinaryService,
   ) {}
 
@@ -49,10 +50,31 @@ export class UserService {
     return res;
   }
 
-  async findUsers(query: Partial<QueryUserDto>): Promise<User[]> {
-    const user = query
-      ? await this.userModel.findAll({ where: query })
-      : await this.userModel.findAll();
+  async findUsers(query: Partial<QueryUserDto>): Promise<Partial<User>[]> {
+    const { tag, ...formatedQuery } = query;
+
+    if (!tag) {
+      const user = query
+        ? await this.userModel.findAll({ where: formatedQuery })
+        : await this.userModel.findAll();
+      const formatedRes = user.map((user) => {
+        const { password, ...data } = user.dataValues;
+        return data;
+      });
+      return formatedRes;
+    }
+
+    const resultWithTags = (
+      await this.sequelize.query(`
+        select distinct "Users".id, username, email, "displayName", "avatarUrl", "isVerified", "isAdmin", "loginMethod", "Users"."createdAt", "Users"."updatedAt", "specialties", "about"
+          from "Users", "Posts", "Tags", "Post_Tags"
+          where "Tags".name = '${tag}'
+          and "Users"."id" = "Posts"."authorId"
+          and "Posts".id = "Post_Tags"."postId"
+          and "Tags".id = "Post_Tags"."tagId"
+          `)
+    )[0];
+    const user = resultWithTags as User[];
     return user;
   }
 

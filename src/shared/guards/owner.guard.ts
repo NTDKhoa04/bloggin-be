@@ -52,7 +52,7 @@ export class OwnerGuard implements CanActivate {
 
     // Determine the model name from the service (assuming it follows naming convention)
     const modelName = `${resourceService.name.replace('Service', '').toLowerCase()}Model`;
-    const model = (serviceInstance as any)[modelName];
+    const model = serviceInstance[modelName];
 
     if (!model) {
       throw new Error(`Model ${modelName} not found in service`);

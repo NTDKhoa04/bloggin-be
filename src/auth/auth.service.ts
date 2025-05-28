@@ -5,18 +5,18 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import * as argon2 from 'argon2';
 import { InjectModel } from '@nestjs/sequelize';
-import { User } from 'src/user/model/user.model';
-import {
-  CreateGoogleUserDto,
-  CreateLocalUserDto,
-} from 'src/user/dtos/create-user.dto';
+import * as argon2 from 'argon2';
 import { UniqueConstraintError } from 'sequelize';
 import {
   ValidationError,
   ValidationErrorDetail,
 } from 'src/shared/classes/validation-error.class';
+import {
+  CreateGoogleUserDto,
+  CreateLocalUserDto,
+} from 'src/user/dtos/create-user.dto';
+import { User } from 'src/user/model/user.model';
 
 @Injectable()
 export class AuthService {

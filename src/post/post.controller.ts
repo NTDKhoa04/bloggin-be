@@ -24,6 +24,7 @@ import { UpdatePostDto, UpdatePostSchema } from './dtos/update-post.dto';
 import { PostService } from './post.service';
 import { TtsService } from 'src/tts/tts.service';
 import extractTextFromPostContent from 'src/shared/utils/extractTextFromPostContent';
+import { QueryPostDto, QueryPostSchema } from './dtos/query-post.dto';
 
 @Controller({ path: 'post', version: '1' })
 export class PostController {
@@ -48,11 +49,11 @@ export class PostController {
     return this.postService.update(id, updatePostDto, userId ?? '');
   }
 
-  @Get('/all')
+  @Get()
   async getAllPosts(
-    @Query(new ZodValidationPipe(PaginationSchema)) pagination: PaginationDto,
+    @Query(new ZodValidationPipe(QueryPostSchema)) query: QueryPostDto,
   ) {
-    return this.postService.findAll(pagination);
+    return this.postService.findAll(query);
   }
 
   @Get('/author/:id')

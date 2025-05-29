@@ -8,22 +8,20 @@ import {
   UseGuards,
 } from '@nestjs/common';
 
-import { AuthService } from './auth.service';
+import { Request } from 'express';
+import { SuccessResponse } from 'src/shared/classes/success-response.class';
+import { Me } from 'src/shared/decorators/user.decorator';
 import { ZodValidationPipe } from 'src/shared/pipes/zod.pipe';
 import {
   CreateLocalUserDto,
   CreateLocalUserSchema,
-  CreateUserDto,
-  CreateUserSchema,
 } from 'src/user/dtos/create-user.dto';
-import { SuccessResponse } from 'src/shared/classes/success-response.class';
-import { LoginGuard } from './guards/login.guard';
-import { LoggedInOnly } from './guards/authenticated.guard';
-import { Request } from 'express';
-import { AdminOnly } from './guards/role.guard';
-import { Me } from 'src/shared/decorators/user.decorator';
 import { User } from 'src/user/model/user.model';
+import { AuthService } from './auth.service';
+import { LoggedInOnly } from './guards/authenticated.guard';
 import { GoogleAuthenticated } from './guards/google.guard';
+import { LoginGuard } from './guards/login.guard';
+import { AdminOnly } from './guards/role.guard';
 
 export interface AuthenticatedRequest extends Request {
   user?: User;

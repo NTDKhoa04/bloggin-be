@@ -59,7 +59,6 @@ export class UserController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const user = await this.userService.updateUser(id!, userInfo);
-    console.log(user);
     if (!user) {
       res.statusCode = HttpStatus.NOT_MODIFIED;
       return;
@@ -85,11 +84,7 @@ export class UserController {
     query: Partial<QueryUserDto>,
   ) {
     const res = await this.userService.findUsers(query);
-    const formatedRes = res.map((user) => {
-      const { password, ...data } = user.dataValues;
-      return data;
-    });
-    return new SuccessResponse('Users found', formatedRes);
+    return new SuccessResponse('Users found', res);
   }
 
   @Get(':id')

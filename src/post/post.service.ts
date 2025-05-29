@@ -22,6 +22,9 @@ import { TtsService } from 'src/tts/tts.service';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import extractAudioCloudinaryPublicId from 'src/shared/utils/extractAudioPublicIdFromUrl';
 import generateSafeSSML from 'src/shared/utils/generateSafeSSML';
+import { Query } from 'mysql2/typings/mysql/lib/protocol/sequences/Query';
+import { QueryPostDto } from './dtos/query-post.dto';
+import { Op } from 'sequelize';
 
 export const USER_ATTRIBUTES = [
   'username',
@@ -106,10 +109,12 @@ export class PostService {
   }
 
   //implement pagination with cursor based pagination
-  async findAll(pagination: PaginationDto) {
-    const offset = (pagination.page - 1) * pagination.limit;
+  async findAll(query: QueryPostDto) {
+    const { page, limit, title, tagName } = query;
+    const offset = (page - 1) * limit;
 
     const { rows: posts, count } = await this.postModel.findAndCountAll({
+      where: title ? { title: { [Op.like]: `%${title}%` } } : undefined,
       include: [
         {
           model: User,
@@ -118,6 +123,7 @@ export class PostService {
         {
           model: Tag,
           through: { attributes: [] },
+          where: tagName ? { name: { [Op.like]: `%${tagName}%` } } : undefined,
         },
       ],
       attributes: {
@@ -130,7 +136,7 @@ export class PostService {
           ],
         ],
       },
-      limit: pagination.limit,
+      limit: limit,
       offset,
       order: [['createdAt', 'DESC']],
     });
@@ -139,8 +145,8 @@ export class PostService {
       'Posts found',
       posts,
       count,
-      pagination.page,
-      pagination.limit,
+      page,
+      limit,
     );
   }
 

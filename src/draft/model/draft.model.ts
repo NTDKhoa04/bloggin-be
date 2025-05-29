@@ -1,4 +1,4 @@
-import sequelize, { literal } from 'sequelize';
+import sequelize from 'sequelize';
 import {
   AllowNull,
   Column,

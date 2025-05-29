@@ -24,6 +24,7 @@ import { Comment } from './comment/model/comment.model';
 import { Follow } from './follow/model/follow.model';
 import { FavoriteModule } from './favorite/favorite.module';
 import { TtsModule } from './tts/tts.module';
+import { StatisticsModule } from './statistics/statistics.module';
 
 @Module({
   imports: [
@@ -56,6 +57,7 @@ import { TtsModule } from './tts/tts.module';
     CommentModule,
     FavoriteModule,
     TtsModule,
+    StatisticsModule,
   ],
   controllers: [AppController],
   providers: [AppService, AdminOnly],

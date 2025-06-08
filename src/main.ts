@@ -7,9 +7,17 @@ import * as passport from 'passport';
 import { createClient } from 'redis';
 import { RedisStore } from 'connect-redis';
 import { HttpAdapterHost } from '@nestjs/core';
+import {
+  ExpressAdapter,
+  NestExpressApplication,
+} from '@nestjs/platform-express';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const adapter = new ExpressAdapter();
+  const app = await NestFactory.create<NestExpressApplication>(
+    AppModule,
+    adapter,
+  );
   app.setGlobalPrefix('api');
   app.enableVersioning();
   const configService = app.get<ConfigService>(ConfigService);

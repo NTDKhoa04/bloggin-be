@@ -139,6 +139,7 @@ export class PostService {
       limit: limit,
       offset,
       order: [['createdAt', 'DESC']],
+      distinct: true, // Ensure distinct results when using include
     });
 
     return new PaginationWrapper<Post[]>(

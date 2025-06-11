@@ -16,4 +16,10 @@ export class StatisticsController {
     const res = await this.statisticsService.getTopTag(top);
     return new SuccessResponse('Get top topics successfully', res);
   }
+
+  @Get('overall')
+  async getOverallStatistics() {
+    const res = await this.statisticsService.getAdminOverallStats();
+    return new SuccessResponse('Get overall statistics successfully', res);
+  }
 }

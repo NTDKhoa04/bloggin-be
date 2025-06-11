@@ -1,17 +1,35 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { InjectConnection } from '@nestjs/sequelize';
+import { InjectConnection, InjectModel } from '@nestjs/sequelize';
 import { Sequelize } from 'sequelize-typescript';
 import {
   GetTopFollowedUserResponseDto,
   GetTopFollowedUserResponseSchema,
 } from './dto/get-top-followed-user-response.dto';
 import { GetTopTopicResponseSchema } from './dto/get-top-topic-response';
+import { User } from 'src/user/model/user.model';
+import { Tag } from 'src/tag/model/tag.model';
+import { Follow } from 'src/follow/model/follow.model';
+import { Favorite } from 'src/favorite/model/favorite.model';
+import { Post } from 'src/post/model/post.model';
+import { Comment } from 'src/comment/model/comment.model';
 
 @Injectable()
 export class StatisticsService {
   constructor(
     @InjectConnection()
     private readonly sequelize: Sequelize,
+    @InjectModel(User)
+    private userModel: typeof User,
+    @InjectModel(Post)
+    private postModel: typeof Post,
+    @InjectModel(Tag)
+    private tagModel: typeof Tag,
+    @InjectModel(Follow)
+    private followModel: typeof Follow,
+    @InjectModel(Favorite)
+    private favoriteModel: typeof Favorite,
+    @InjectModel(Comment)
+    private commentModel: typeof Comment,
   ) {}
 
   async getTopFollowedUser(
@@ -63,5 +81,35 @@ export class StatisticsService {
       return result.data;
     });
     return parsedResult;
+  }
+
+  async getAdminOverallStats() {
+    const [
+      usersCount,
+      postsCount,
+      tagsCount,
+      followsCount,
+      favoritesCount,
+      commentsCount,
+    ] = await Promise.all([
+      this.userModel.count(),
+      this.postModel.count(),
+      this.tagModel.count(),
+      this.followModel.count(),
+      this.favoriteModel.count(),
+      this.commentModel.count(),
+    ]);
+
+    const interactionCount = followsCount + favoritesCount + commentsCount;
+
+    return {
+      usersCount,
+      postsCount,
+      tagsCount,
+      followsCount,
+      favoritesCount,
+      commentsCount,
+      interactionCount,
+    };
   }
 }

@@ -4,7 +4,7 @@ export const CreatePostSchema = z.object({
   authorId: z.string().nonempty({ message: 'authorId is required' }),
   title: z.string().max(255).nonempty({ message: 'title is required' }),
   content: z.string().nonempty({ message: 'content is required' }),
-  tags: z.array(z.string()),
+  tags: z.array(z.string()).optional().default([]),
 });
 
 export type CreatePostDto = z.infer<typeof CreatePostSchema>;

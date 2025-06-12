@@ -229,7 +229,8 @@ export class StatisticsService {
                 inner JOIN "Comments" c ON c."postId" = p.id
                 inner JOIN "Favorites" f ON f."postId" = p.id
           GROUP BY  p.title
-          ORDER BY p.title;`,
+          ORDER BY p.title
+          LIMIT 5;`,
       )
     )[0];
 

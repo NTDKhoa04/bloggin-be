@@ -47,7 +47,7 @@ export class PostService {
     private readonly cloudinaryService: CloudinaryService,
   ) {}
 
-  async create(createPostDto: CreatePostDto) {
+  async create(createPostDto: CreatePostDto, thumbnail?: Express.Multer.File) {
     const transaction = await this.sequelize.transaction();
 
     try {
@@ -59,9 +59,20 @@ export class PostService {
         throw new NotFoundException(`User with id ${authorId} not found`);
       }
 
+      let thumbnailUrl: string | undefined;
+
+      if (thumbnail !== undefined) {
+        thumbnailUrl = (await this.cloudinaryService.uploadImage(thumbnail))
+          .secure_url;
+
+        if (!thumbnailUrl) {
+          throw new Error('Failed to upload thumbnail.');
+        }
+      }
+
       // Create post
       const post = await this.postModel.create(
-        { authorId, title, content },
+        { authorId, title, content, thumbnailUrl },
         { transaction },
       );
 

@@ -45,6 +45,9 @@ export class Post extends Model {
   @Column
   viVoiceUrl: string;
 
+  @Column
+  thumbnailUrl?: string;
+
   @Default(literal('CURRENT_TIMESTAMP'))
   @Column
   createdAt: Date;

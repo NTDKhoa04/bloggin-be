@@ -145,11 +145,18 @@ export class PostService {
             ),
             'commentCount',
           ],
+          [
+            Sequelize.literal(
+              `(SELECT COUNT(*) FROM "Favorites" WHERE "Favorites"."postId" = "Post"."id")`,
+            ),
+            'likeCount',
+          ],
         ],
       },
       limit: limit,
       offset,
       order: [['createdAt', 'DESC']],
+      distinct: true, // Ensure distinct results when using include
     });
 
     return new PaginationWrapper<Post[]>(

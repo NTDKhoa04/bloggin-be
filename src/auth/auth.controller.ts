@@ -5,6 +5,7 @@ import {
   Get,
   Post,
   Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 
@@ -44,13 +45,15 @@ export class AuthController {
   @UseGuards(GoogleAuthenticated)
   @Get('google/login')
   async googleLogin() {
+    console.log('redirect by login route');
     return new SuccessResponse('Redirecting to Google login');
   }
 
   @UseGuards(GoogleAuthenticated)
   @Get('google/redirect')
-  async googleRedirect() {
-    return new SuccessResponse('Google login successful');
+  async googleRedirect(@Res() res) {
+    console.log('Google redirect called');
+    return res.redirect(`${process.env.FRONTEND_URL}`);
   }
 
   @Post('register')

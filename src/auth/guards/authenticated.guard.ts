@@ -12,6 +12,8 @@ export class LoggedInOnly implements CanActivate {
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
     const request = context.switchToHttp().getRequest();
+	console.log('Checking if user is authenticated', request.user);    
+console.log('IsAuthenticated:', request.isAuthenticated());
     if (!request.isAuthenticated()) {
       throw new UnauthorizedException('You are not logged in');
     }

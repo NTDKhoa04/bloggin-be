@@ -24,6 +24,7 @@ import { Comment } from './comment/model/comment.model';
 import { Follow } from './follow/model/follow.model';
 import { FavoriteModule } from './favorite/favorite.module';
 import { TtsModule } from './tts/tts.module';
+
 import { StatisticsModule } from './statistics/statistics.module';
 import { CommentSentimentModule } from './comment-sentiment/comment-sentiment.module';
 
@@ -39,8 +40,14 @@ import { CommentSentimentModule } from './comment-sentiment/comment-sentiment.mo
         username: config.getOrThrow<string>('DB_USERNAME'),
         password: config.getOrThrow<string>('DB_PASSWORD'),
         database: config.getOrThrow<string>('DB_NAME'),
+        dialectOptions: {
+          ssl: {
+            require: true,
+            rejectUnauthorized: false,
+          },
+        },
         autoLoadModels: true,
-        sync: { alter: true },
+        sync: { alter: false },
         logging: false,
         models: [User, Post, Tag, Post_Tag, Draft, Comment, Follow],
       }),

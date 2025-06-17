@@ -6,6 +6,7 @@ export class LoginGuard extends AuthGuard('local') {
     const result = (await super.canActivate(context)) as boolean;
     const request = context.switchToHttp().getRequest();
     await super.logIn(request);
-    return result;
+	console.log('✅ Logged in - req.user:', request.user);    
+return result;
   }
 }

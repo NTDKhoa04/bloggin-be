@@ -7,14 +7,9 @@ import * as passport from 'passport';
 import { createClient } from 'redis';
 import { RedisStore } from 'connect-redis';
 import { HttpAdapterHost } from '@nestjs/core';
-import { ExpressAdapter, NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
-  
-	const adapter = new ExpressAdapter();
-	adapter.set('trust proxy', '157.245.196.26');
-	const app = await NestFactory.create<NestExpressApplication>(AppModule,adapter);
-  app.set('trust proxy', 1);
+  const app = await NestFactory.create(AppModule);
   app.setGlobalPrefix('api');
   app.enableVersioning();
   const configService = app.get<ConfigService>(ConfigService);
@@ -32,11 +27,6 @@ async function bootstrap() {
   const redisStore = new RedisStore({
     client: redisClient,
   });
-
-  console.log('SESSION_SECRET:', configService.get('SESSION_SECRET'));
-	console.log('Redis client:', redisClient.isOpen ? 'connected' : 'not connected');
-
-
   app.use(
     session({
       store: redisStore,
@@ -48,15 +38,16 @@ async function bootstrap() {
       cookie: {
         maxAge: 1000 * 60 * 60 * 24 * 7,
         httpOnly: true,
-        secure: false,
+        secure: true,
       },
-    }),
+    }),secure: true,
+        sameSite: 'none', 
   );
 
   app.use(passport.initialize());
   app.use(passport.session());
   app.enableCors({
-    origin: ['https://www.bloggin.blog','http://localhost:3000'],
+    origin: 'https://www.bloggin.blog',
     credentials: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   });

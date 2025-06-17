@@ -20,22 +20,55 @@ services:
   db:
     image: postgres:17.2
     ports:
-      - '5432:5432'
-    environment:
-      POSTGRES_USER: ${DB_USERNAME}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-  redis:
-    image: redis:7.4.2-alpine
-    ports:
-      - '6379:6379'
-    expose:
-      - 6379
-    volumes:
-      - redis-data:/var/lib/redis/data
+      - "8080:8080"
+    restart: always
+    networks:
+      - web
 
-volumes:
-  postgres-data:
-  redis-data:
+
+  nginx-letsencrypt:
+    image: nginxproxy/acme-companion
+    container_name: nginx-letsencrypt
+    depends_on:
+      - nginx-proxy
+    volumes_from:
+      - nginx-proxy
+    environment:
+      DEFAULT_EMAIL: 22520629@gm.uit.edu.vn
+      NGINX_PROXY_CONTAINER: nginx-proxy
+      ACME_CA_URI: https://acme-staging-v02.api.letsencrypt.org/directory
+    volumes:
+      - nginx-certs:/etc/nginx/certs
+      - nginx-vhost:/etc/nginx/vhost.d
+      - nginx-html:/usr/share/nginx/html
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: always
+    networks:
+      - web
+
+#   nginx-letsencrypt:
+#     image: nginxproxy/acme-companion
+#     container_name: nginx-letsencrypt
+#     depends_on:
+#       - nginx-proxy
+#     volumes_from:
+#       - nginx-proxy
+#     environment:
+#       DEFAULT_EMAIL: 22520629@gm.uit.edu.vn
+#       NGINX_PROXY_CONTAINER: nginx-proxy
+#     volumes:
+#       - nginx-certs:/etc/nginx/certs
+#       - nginx-vhost:/etc/nginx/vhost.d
+#       - nginx-html:/usr/share/nginx/html
+#       - /var/run/docker.sock:/var/run/docker.sock:ro
+#     restart: always
+#     networks:
+#       - web
+
+# volumes:
+#   nginx-certs:
+#   nginx-vhost:
+#   nginx-html:
+
+networks:
+  web:

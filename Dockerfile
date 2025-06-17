@@ -1,6 +1,15 @@
 FROM node:23-alpine
-WORKDIR /bloggin-be
+
+WORKDIR /app
+
 COPY package*.json ./
 RUN npm install
+# Install pm2 globally
+RUN npm install -g pm2
+
 COPY . .
-CMD ["npm", "run", "start:dev"]
+
+RUN npm run build
+
+# Use PM2 to run the app
+CMD ["pm2-runtime", "dist/main.js"]

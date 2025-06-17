@@ -1,13 +1,24 @@
 services:
   app:
-    image: bloggin-app
+    image: node:23-alpine
+    ports:
+      - '8080:8080'
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: sh -c "npm run build && npm run start:prod"
+    depends_on:
+      - db
     environment:
-      VIRTUAL_PORT: 8080
-      VIRTUAL_HOST: api.bloggin.blog
-      LETSENCRYPT_HOST: api.bloggin.blog
-      LETSENCRYPT_EMAIL: 22520629@gm.uit.edu.vn
-    # expose:
-    #   - "8080"
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+
+  db:
+    image: postgres:17.2
     ports:
       - "8080:8080"
     restart: always

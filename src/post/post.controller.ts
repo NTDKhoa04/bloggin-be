@@ -1,16 +1,17 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Delete,
   Get,
-  NotFoundException,
   Param,
   Patch,
   Post,
   Query,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { LoggedInOnly } from 'src/auth/guards/authenticated.guard';
 import {
   PaginationDto,
@@ -20,10 +21,9 @@ import { Me } from 'src/shared/decorators/user.decorator';
 import { ZodValidationPipe } from 'src/shared/pipes/zod.pipe';
 import { User } from 'src/user/model/user.model';
 import { CreatePostDto, CreatePostSchema } from './dtos/create-post.dto';
+import { QueryPostDto, QueryPostSchema } from './dtos/query-post.dto';
 import { UpdatePostDto, UpdatePostSchema } from './dtos/update-post.dto';
 import { PostService } from './post.service';
-import { TtsService } from 'src/tts/tts.service';
-import extractTextFromPostContent from 'src/shared/utils/extractTextFromPostContent';
 
 @Controller({ path: 'post', version: '1' })
 export class PostController {
@@ -31,10 +31,12 @@ export class PostController {
 
   @UseGuards(LoggedInOnly)
   @Post()
+  @UseInterceptors(FileInterceptor('thumbnail'))
   async createPost(
+    @UploadedFile() thumbnail: Express.Multer.File,
     @Body(new ZodValidationPipe(CreatePostSchema)) createPostDto: CreatePostDto,
   ) {
-    return this.postService.create(createPostDto);
+    return this.postService.create(createPostDto, thumbnail);
   }
 
   @UseGuards(LoggedInOnly)
@@ -48,11 +50,11 @@ export class PostController {
     return this.postService.update(id, updatePostDto, userId ?? '');
   }
 
-  @Get('/all')
+  @Get()
   async getAllPosts(
-    @Query(new ZodValidationPipe(PaginationSchema)) pagination: PaginationDto,
+    @Query(new ZodValidationPipe(QueryPostSchema)) query: QueryPostDto,
   ) {
-    return this.postService.findAll(pagination);
+    return this.postService.findAll(query);
   }
 
   @Get('/author/:id')

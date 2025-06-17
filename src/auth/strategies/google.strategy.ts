@@ -2,9 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Profile, Strategy } from 'passport-google-oauth20';
-import { AuthService } from '../auth.service';
-import { CreateGoogleUserDto } from 'src/user/dtos/create-user.dto';
 import { LoginMethodEmun } from 'src/shared/enum/login-method.enum';
+import { CreateGoogleUserDto } from 'src/user/dtos/create-user.dto';
+import { AuthService } from '../auth.service';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy) {
@@ -25,7 +25,6 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
     refreshToken: string,
     profile: Profile,
   ): Promise<void> {
-    console.log(profile);
     if (!profile) throw new Error('Google profile not found');
     const userData: CreateGoogleUserDto = {
       username: profile.username ?? profile.displayName,

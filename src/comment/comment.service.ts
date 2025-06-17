@@ -14,6 +14,7 @@ import {
   SuccessResponse,
 } from 'src/shared/classes/success-response.class';
 import { PaginationDto } from 'src/shared/classes/pagination.dto';
+import { CommentSentimentService } from 'src/comment-sentiment/comment-sentiment.service';
 
 @Injectable()
 export class CommentService {
@@ -21,6 +22,7 @@ export class CommentService {
     @InjectModel(Comment) private commentModel: typeof Comment,
     @InjectModel(User) private userModel: typeof User,
     @InjectModel(Post) private postModel: typeof Post,
+    private readonly commentSentimentService: CommentSentimentService,
   ) {}
 
   async create(createCommentDto: CreateCommentDto, authorId: string) {
@@ -35,6 +37,15 @@ export class CommentService {
 
     if (!post) {
       throw new NotFoundException('Post not found');
+    }
+
+    const isCommentAllowed =
+      await this.commentSentimentService.analyzeSentiment(content);
+
+    if (!isCommentAllowed) {
+      throw new ForbiddenException(
+        'Comment contains inappropriate content and cannot be posted',
+      );
     }
 
     const comment = await this.commentModel.create({

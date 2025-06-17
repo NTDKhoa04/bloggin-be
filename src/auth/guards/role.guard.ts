@@ -11,8 +11,6 @@ export class AdminOnly implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    console.log('at role guard');
-
     const req = context.switchToHttp().getRequest();
     if (!req.isAuthenticated()) {
       throw new UnauthorizedException("You're not logged in");

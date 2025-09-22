@@ -4,27 +4,26 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { Post } from './model/post.model';
-import { CreatePostDto } from './dtos/create-post.dto';
-import { UpdatePostDto } from './dtos/update-post.dto';
+import { Op } from 'sequelize';
+import { Sequelize } from 'sequelize-typescript';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { Comment } from 'src/comment/model/comment.model';
+import { Follow } from 'src/follow/model/follow.model';
+import { PaginationDto } from 'src/shared/classes/pagination.dto';
 import {
   PaginationWrapper,
   SuccessResponse,
 } from 'src/shared/classes/success-response.class';
-import { Tag } from 'src/tag/model/tag.model';
-import { Sequelize } from 'sequelize-typescript';
-import { User } from 'src/user/model/user.model';
-import { PaginationDto } from 'src/shared/classes/pagination.dto';
-import { Comment } from 'src/comment/model/comment.model';
-import { Follow } from 'src/follow/model/follow.model';
-import extractTextFromPostContent from 'src/shared/utils/extractTextFromPostContent';
-import { TtsService } from 'src/tts/tts.service';
-import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import extractAudioCloudinaryPublicId from 'src/shared/utils/extractAudioPublicIdFromUrl';
+import extractTextFromPostContent from 'src/shared/utils/extractTextFromPostContent';
 import generateSafeSSML from 'src/shared/utils/generateSafeSSML';
-import { Query } from 'mysql2/typings/mysql/lib/protocol/sequences/Query';
+import { Tag } from 'src/tag/model/tag.model';
+import { TtsService } from 'src/tts/tts.service';
+import { User } from 'src/user/model/user.model';
+import { CreatePostDto } from './dtos/create-post.dto';
 import { QueryPostDto } from './dtos/query-post.dto';
-import { Op } from 'sequelize';
+import { UpdatePostDto } from './dtos/update-post.dto';
+import { Post } from './model/post.model';
 
 export const USER_ATTRIBUTES = [
   'username',
@@ -362,5 +361,39 @@ export class PostService {
         console.log('Audio vi removed from Cloudinary:', result);
       }
     }
+  }
+
+  async getPostByTitleAsync(title: string): Promise<Post[]> {
+    const posts = await this.postModel.findAll({
+      where: {
+        title: { [Op.like]: `%${title}%` },
+      },
+      attributes: { exclude: ['content'] },
+      include: [
+        {
+          model: User,
+          attributes: USER_ATTRIBUTES,
+        },
+      ],
+    });
+
+    return posts;
+  }
+
+  async getPostByAuthorIdsAsync(authorIds: string[]): Promise<Post[]> {
+    const posts = await this.postModel.findAll({
+      where: {
+        authorId: { [Op.in]: authorIds },
+      },
+      attributes: { exclude: ['content'] },
+      include: [
+        {
+          model: User,
+          attributes: USER_ATTRIBUTES,
+        },
+      ],
+    });
+
+    return posts;
   }
 }

@@ -10,6 +10,7 @@ import { Post } from 'src/post/model/post.model';
 import { Tag } from 'src/tag/model/tag.model';
 import { SuccessResponse } from 'src/shared/classes/success-response.class';
 import { Sequelize } from 'sequelize-typescript';
+import { Op } from 'sequelize';
 
 @Injectable()
 export class PostTagService {
@@ -86,6 +87,26 @@ export class PostTagService {
     return new SuccessResponse<Tag[]>('Post Tags found', post.tags);
   }
 
+  async findAllTagsByPostIds(postIds: string[]): Promise<Tag[]> {
+    const postTags = await this.postTagModel.findAll({
+      where: {
+        postId: {
+          [Op.in]: postIds,
+        },
+      },
+    });
+
+    const tags = await this.tagModel.findAll({
+      where: {
+        id: {
+          [Op.in]: postTags.map((pt) => pt.tagId),
+        },
+      },
+    });
+
+    return tags;
+  }
+
   async remove(createPostTagDto: CreatePostTagDto) {
     const { postId, tagsId } = createPostTagDto;
 
@@ -134,5 +155,27 @@ export class PostTagService {
     }
 
     return new SuccessResponse<Post[]>('Posts found', tag.posts);
+  }
+
+  async findAllPostsByTagIds(tagIds: string[]): Promise<Post[]> {
+    const postTags = await this.postTagModel.findAll({
+      where: {
+        tagId: {
+          [Op.in]: tagIds,
+        },
+      },
+    });
+    const postIds = postTags.map((pt) => pt.postId);
+
+    const posts = this.postModel.findAll({
+      where: {
+        id: {
+          [Op.in]: postIds,
+        },
+      },
+      attributes: { exclude: ['content'] },
+    });
+
+    return posts;
   }
 }

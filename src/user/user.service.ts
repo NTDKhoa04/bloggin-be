@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/sequelize';
 import * as argon2 from 'argon2';
-import { UniqueConstraintError } from 'sequelize';
+import { Op, UniqueConstraintError } from 'sequelize';
 import { Sequelize } from 'sequelize-typescript';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import {
@@ -47,6 +47,15 @@ export class UserService {
   async findUserById(id: string): Promise<User> {
     const res = await this.userModel.findOne({ where: { id: id } });
     if (!res) throw new NotFoundException(`User with id ${id} not found`);
+    return res;
+  }
+
+  async findUserByIds(ids: string[]): Promise<User[]> {
+    const res = await this.userModel.findAll({
+      where: { id: { [Op.in]: ids } },
+      attributes: { exclude: ['password'] },
+    });
+
     return res;
   }
 
@@ -118,5 +127,24 @@ export class UserService {
       }
       throw new InternalServerErrorException(err);
     }
+  }
+
+  async getUsersByNameAsync(name: string): Promise<User[]> {
+    const users = await this.userModel.findAll({
+      where: {
+        [Op.and]: [
+          {
+            [Op.or]: [
+              { displayName: { [Op.like]: `%${name}%` } },
+              { username: { [Op.like]: `%${name}%` } },
+            ],
+          },
+          { username: { [Op.not]: 'admin' } },
+        ],
+      },
+      attributes: { exclude: ['password'] },
+    });
+
+    return users;
   }
 }

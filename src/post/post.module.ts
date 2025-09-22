@@ -11,7 +11,6 @@ import { Follow } from 'src/follow/model/follow.model';
 import { Post } from './model/post.model';
 import { PostController } from './post.controller';
 import { PostService } from './post.service';
-import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
 
 @Module({

@@ -6,7 +6,7 @@ services:
     working_dir: /app
     volumes:
       - .:/app
-    command: sh -c "npm run build && npm run start:prod"
+    command: sh -c "npm run build && npm run start:dev"
     depends_on:
       - db
     environment:

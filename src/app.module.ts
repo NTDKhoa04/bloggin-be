@@ -26,6 +26,7 @@ import { FavoriteModule } from './favorite/favorite.module';
 import { TtsModule } from './tts/tts.module';
 import { StatisticsModule } from './statistics/statistics.module';
 import { CommentSentimentModule } from './comment-sentiment/comment-sentiment.module';
+import { SearchModule } from './search/search.module';
 
 @Module({
   imports: [
@@ -60,6 +61,7 @@ import { CommentSentimentModule } from './comment-sentiment/comment-sentiment.mo
     TtsModule,
     StatisticsModule,
     CommentSentimentModule,
+    SearchModule,
   ],
   controllers: [AppController],
   providers: [AppService, AdminOnly],

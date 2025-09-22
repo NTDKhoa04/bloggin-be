@@ -9,5 +9,6 @@ import { TagCleanupService } from './tag-cleanup.service';
   imports: [SequelizeModule.forFeature([Tag])],
   controllers: [TagController],
   providers: [TagService, TagCleanupService],
+  exports: [TagService],
 })
 export class TagModule {}

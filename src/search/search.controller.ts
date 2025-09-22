@@ -1,5 +1,6 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { SearchService } from './search.service';
+import { SuccessResponse } from 'src/shared/classes/success-response.class';
 
 @Controller({
   path: 'search',
@@ -11,7 +12,6 @@ export class SearchController {
   @Get()
   async getSearchResultsByQueryAsync(@Query('query') query: string) {
     const results = await this.searchService.searchAsync(query);
-
-    return results;
+    return new SuccessResponse('Search success', results);
   }
 }

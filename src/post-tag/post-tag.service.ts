@@ -11,6 +11,8 @@ import { Tag } from 'src/tag/model/tag.model';
 import { SuccessResponse } from 'src/shared/classes/success-response.class';
 import { Sequelize } from 'sequelize-typescript';
 import { Op } from 'sequelize';
+import { USER_ATTRIBUTES } from 'src/post/post.service';
+import { User } from 'src/user/model/user.model';
 
 @Injectable()
 export class PostTagService {
@@ -173,6 +175,12 @@ export class PostTagService {
           [Op.in]: postIds,
         },
       },
+      include: [
+        {
+          model: User,
+          attributes: USER_ATTRIBUTES,
+        },
+      ],
       attributes: { exclude: ['content'] },
     });
 

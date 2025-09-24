@@ -366,7 +366,7 @@ export class PostService {
   async getPostByTitleAsync(title: string): Promise<Post[]> {
     const posts = await this.postModel.findAll({
       where: {
-        title: { [Op.like]: `%${title}%` },
+        title: { [Op.iLike]: `%${title}%` },
       },
       attributes: { exclude: ['content'] },
       include: [

@@ -135,8 +135,8 @@ export class UserService {
         [Op.and]: [
           {
             [Op.or]: [
-              { displayName: { [Op.like]: `%${name}%` } },
-              { username: { [Op.like]: `%${name}%` } },
+              { displayName: { [Op.iLike]: `%${name}%` } },
+              { username: { [Op.iLike]: `%${name}%` } },
             ],
           },
           { username: { [Op.not]: 'admin' } },

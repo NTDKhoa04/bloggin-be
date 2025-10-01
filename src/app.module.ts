@@ -27,6 +27,7 @@ import { TtsModule } from './tts/tts.module';
 import { StatisticsModule } from './statistics/statistics.module';
 import { CommentSentimentModule } from './comment-sentiment/comment-sentiment.module';
 import { SearchModule } from './search/search.module';
+import { MailingServiceModule } from './mailing-service/mailing-service.module';
 
 @Module({
   imports: [
@@ -62,6 +63,7 @@ import { SearchModule } from './search/search.module';
     StatisticsModule,
     CommentSentimentModule,
     SearchModule,
+    MailingServiceModule,
   ],
   controllers: [AppController],
   providers: [AppService, AdminOnly],

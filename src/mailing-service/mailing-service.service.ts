@@ -5,7 +5,12 @@ import { MailTemplatesEnum } from 'src/shared/enum/mail-templates.enum';
 import * as nodemailer from 'nodemailer';
 import * as fs from 'fs';
 import * as path from 'path';
-import MailReplacementsDto from './dto/mail-replacements.dto';
+import {
+  AdminWarningReplacementsDto,
+  EmailVerificationReplacementsDto,
+  MailReplacementsDto,
+} from './dto/mail-replacements.dto';
+import MailContentDto from './dto/mail-content.dto';
 
 @Injectable()
 export class MailingServiceService {
@@ -52,25 +57,23 @@ export class MailingServiceService {
 
   public async sendTestEmail() {
     try {
-      const replacements: MailReplacementsDto = {
+      const replacements: AdminWarningReplacementsDto = {
         username: 'Khoa',
-        link: 'https://www.google.com',
+        postLink: 'https://bloggin.blog/posts/123',
       };
       const template = this.getHtmlString(
         MailTemplatesEnum.ADMIN_WARNING,
         replacements,
       );
 
-      // const mailContent: MailContentDto = {
-      //   from: 'Bloggin',
-      //   to: 'nguyenthaidangkhoa04@gmail.com',
-      //   subject: 'Another Test Email',
-      //   html: template,
-      // };
+      const mailContent: MailContentDto = {
+        from: 'info@bloggin.blog',
+        to: 'nguyenthaidangkhoa04@gmail.com',
+        subject: 'Test Email with templates',
+        html: template,
+      };
 
-      // const results = await this.transporter.sendMail(mailContent);
-
-      return template;
+      const results = await this.transporter.sendMail(mailContent);
     } catch (error) {
       console.error('Error sending email:', error);
     }

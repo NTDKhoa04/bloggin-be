@@ -1,4 +1,11 @@
-export default interface MailReplacementsDto {
+export interface MailReplacementsDto {
   username: string;
-  link?: string;
+}
+
+export interface AdminWarningReplacementsDto extends MailReplacementsDto {
+  postLink: string;
+}
+
+export interface EmailVerificationReplacementsDto extends MailReplacementsDto {
+  verifyLink: string;
 }

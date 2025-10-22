@@ -8,6 +8,8 @@ import {
 import { InjectModel } from '@nestjs/sequelize';
 import * as argon2 from 'argon2';
 import { UniqueConstraintError } from 'sequelize';
+import { EmailVerificationReplacementsDto } from 'src/mailing-service/dto/mail-replacements.dto';
+import { MailingServiceService } from 'src/mailing-service/mailing-service.service';
 import {
   ValidationError,
   ValidationErrorDetail,
@@ -23,10 +25,13 @@ export class AuthService {
   constructor(
     @InjectModel(User)
     private userModel: typeof User,
+    private readonly mailingService: MailingServiceService,
   ) {}
+
   private isEmail(identifier: string): boolean {
     return /\S+@\S+\.\S+/.test(identifier);
   }
+
   async validateUser(identifier: string, password: string): Promise<any> {
     const condition = this.isEmail(identifier)
       ? { email: identifier }
@@ -57,6 +62,7 @@ export class AuthService {
 
   async signIn(userInfo: CreateLocalUserDto): Promise<User> {
     try {
+      //Creating user
       const hashedPassword = await argon2.hash(userInfo.password);
       const info = {
         ...userInfo,
@@ -66,10 +72,20 @@ export class AuthService {
       const createdUser = await this.userModel.findOne({
         where: { username: userInfo.username },
       });
+
+      //Check if user is created
       if (!createdUser)
         throw new InternalServerErrorException(
           'Something went wrong with creating new user',
         );
+
+      //Send account verification email
+      await this.mailingService.sendVerificationEmail(
+        createdUser.id,
+        createdUser.displayName,
+        createdUser.email,
+      );
+
       return createdUser.dataValues;
     } catch (err) {
       if (err instanceof UniqueConstraintError) {

@@ -34,7 +34,7 @@ export class MailingServiceService {
   >;
 
   private readonly redisClient: Redis.RedisClientType;
-  private TOKEN_TTL_SECONDS: number = 60;
+  private TOKEN_TTL_SECONDS: number = 900; //15 minutes
   private readonly TOKEN_PREFIX: string = 'email_verify:token:';
   private readonly LOOKUP_TOKEN_PREFIX: string = 'email_verify:lookup:';
 
@@ -131,11 +131,11 @@ export class MailingServiceService {
       const mailContent: MailContentDto = {
         from: 'info@bloggin.blog',
         to: email,
-        subject: 'Test Email with templates',
+        subject: 'Bloggin - Verify your email address',
         html: htmlString,
       };
 
-      // const results = await this.transporter.sendMail(mailContent);
+      await this.transporter.sendMail(mailContent);
     } catch (error) {
       console.error('Error sending email:', error);
     }
@@ -230,10 +230,10 @@ export class MailingServiceService {
       );
     }
 
-    // await this.userModel.update(
-    //   { isVerified: true },
-    //   { where: { id: userId } },
-    // );
+    await this.userModel.update(
+      { isVerified: true },
+      { where: { id: userId } },
+    );
 
     await this.redisClient.del(this.TOKEN_PREFIX + token);
     await this.redisClient.del(this.LOOKUP_TOKEN_PREFIX + user.email);

@@ -12,6 +12,8 @@ import * as nodemailer from 'nodemailer';
 import * as fs from 'fs';
 import * as path from 'path';
 import {
+  AdminUnflagReplacementsDto,
+  AdminWarningReplacementsDto,
   EmailVerificationReplacementsDto,
   MailReplacementsDto,
 } from './dto/mail-replacements.dto';
@@ -237,5 +239,63 @@ export class MailingServiceService {
 
     await this.redisClient.del(this.TOKEN_PREFIX + token);
     await this.redisClient.del(this.LOOKUP_TOKEN_PREFIX + user.email);
+  }
+
+  async sendAdminWarningEmail(email: string, username: string, postId: string) {
+    var baseFrontendUrl = this.configService.getOrThrow('BASE_FRONTEND_URL');
+
+    var postLink = baseFrontendUrl + '/blog/' + postId;
+
+    var replacements: AdminWarningReplacementsDto = {
+      username: username,
+      postLink: postLink,
+    };
+
+    var htmlString = this.getHtmlString(
+      MailTemplatesEnum.ADMIN_WARNING,
+      replacements,
+    );
+
+    var mailContent: MailContentDto = {
+      from: 'info@bloggin.blog',
+      to: email,
+      subject: 'Bloggin - Your blog has been restricted',
+      html: htmlString,
+    };
+
+    try {
+      await this.transporter.sendMail(mailContent);
+    } catch (error) {
+      console.error('Error sending admin warning email:', error);
+    }
+  }
+
+  async sendAdminUnflagEmail(email: string, username: string, postId: string) {
+    var baseFrontendUrl = this.configService.getOrThrow('BASE_FRONTEND_URL');
+
+    var postLink = baseFrontendUrl + '/blog/' + postId;
+
+    var replacements: AdminUnflagReplacementsDto = {
+      username: username,
+      postLink: postLink,
+    };
+
+    var htmlString = this.getHtmlString(
+      MailTemplatesEnum.ADMIN_UNFLAG,
+      replacements,
+    );
+
+    var mailContent: MailContentDto = {
+      from: 'info@bloggin.blog',
+      to: email,
+      subject: 'Bloggin - Your blog restriction has been lifted',
+      html: htmlString,
+    };
+
+    try {
+      await this.transporter.sendMail(mailContent);
+    } catch (error) {
+      console.error('Error sending admin warning email:', error);
+    }
   }
 }

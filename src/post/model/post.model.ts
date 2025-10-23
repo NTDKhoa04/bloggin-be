@@ -56,6 +56,11 @@ export class Post extends Model {
   @Column
   updatedAt?: Date;
 
+  @AllowNull(true)
+  @Default(false)
+  @Column
+  isFlagged: boolean;
+
   @BelongsToMany(() => Tag, () => Post_Tag)
   tags: Tag[];
 

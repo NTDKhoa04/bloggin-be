@@ -9,3 +9,6 @@ export interface AdminWarningReplacementsDto extends MailReplacementsDto {
 export interface EmailVerificationReplacementsDto extends MailReplacementsDto {
   verifyLink: string;
 }
+
+export interface AdminUnflagReplacementsDto
+  extends AdminWarningReplacementsDto {}

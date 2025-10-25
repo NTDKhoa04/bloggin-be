@@ -325,6 +325,16 @@ export class AdminService {
 
     return flaggedPost;
   }
+
+  async getPostsByMonitoringStatus(status: PostStatus): Promise<Post[]> {
+    const violatedPosts = await this.postModel.findAll({
+      where: { monitoringStatus: status },
+      include: [{ model: User, attributes: ['displayName', 'username'] }],
+      attributes: { exclude: ['content'] },
+    });
+
+    return violatedPosts;
+  }
 }
 
 function getDaysInThisMonth(): number {

@@ -1,7 +1,10 @@
 import {
+  ConflictException,
   ForbiddenException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Op } from 'sequelize';
@@ -24,6 +27,8 @@ import { CreatePostDto } from './dtos/create-post.dto';
 import { QueryPostDto } from './dtos/query-post.dto';
 import { UpdatePostDto } from './dtos/update-post.dto';
 import { Post } from './model/post.model';
+import { PostStatus } from 'src/shared/enum/post-status.enum';
+import { ConfigService } from '@nestjs/config';
 
 export const USER_ATTRIBUTES = [
   'username',
@@ -44,6 +49,7 @@ export class PostService {
     private sequelize: Sequelize,
     private readonly ttsService: TtsService,
     private readonly cloudinaryService: CloudinaryService,
+    private readonly configService: ConfigService,
   ) {}
 
   async create(createPostDto: CreatePostDto, thumbnail?: Express.Multer.File) {
@@ -395,5 +401,33 @@ export class PostService {
     });
 
     return posts;
+  }
+
+  async markPotentialViolatedByAi(postId: string, apiKey: string) {
+    var validkey = this.configService.getOrThrow('OPENAI_API_KEY');
+
+    if (apiKey !== validkey) {
+      throw new UnauthorizedException('Invalid API Key, not allowed');
+    }
+
+    var { message, data: post } = await this.findOne(postId);
+
+    if (!post) {
+      throw new NotFoundException(`Post with id ${postId} not found`);
+    }
+
+    if (post.monitoringStatus === PostStatus.VIOLATED) {
+      throw new ForbiddenException(`Not allowed to flag VIOLATED post`);
+    }
+
+    try {
+      post.monitoringStatus = PostStatus.POTENTIAL_VIOLATION;
+      await post.save();
+    } catch (error) {
+      console.error(`Error flagging post with id ${postId}:`, error);
+      throw new InternalServerErrorException('Failed to flag post');
+    }
+
+    return post;
   }
 }

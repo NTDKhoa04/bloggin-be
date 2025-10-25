@@ -1,16 +1,13 @@
-import {
-  Controller,
-  Get,
-  Param,
-  Patch,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Param, Patch, Query } from '@nestjs/common';
 import { SuccessResponse } from 'src/shared/classes/success-response.class';
+import { ZodValidationPipe } from 'src/shared/pipes/zod.pipe';
 import { AdminService } from './admin.service';
-import { AdminOnly } from 'src/auth/guards/role.guard';
+import {
+  GetPostByMonitoringStatusDto,
+  GetPostByMonitoringStatusSchema,
+} from './dto/get-post-by-monitoring-status.dto';
 
-@UseGuards(AdminOnly)
+// @UseGuards(AdminOnly)
 @Controller({ path: 'admin', version: '1' })
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
@@ -69,5 +66,16 @@ export class AdminController {
   async unflagPost(@Param('postId') postId: string) {
     var unflaggedPost = await this.adminService.unflagPost(postId);
     return new SuccessResponse(`Post has been unflagged`, unflaggedPost);
+  }
+
+  @Get('post')
+  async getPostByMonitoringStatus(
+    @Query(new ZodValidationPipe(GetPostByMonitoringStatusSchema))
+    query: GetPostByMonitoringStatusDto,
+  ) {
+    const res = await this.adminService.getPostsByMonitoringStatus(
+      query.status,
+    );
+    return new SuccessResponse(`Get ${query.status} post successfully`, res);
   }
 }

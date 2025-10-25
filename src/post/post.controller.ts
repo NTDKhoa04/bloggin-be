@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Headers,
   Param,
   Patch,
   Post,
@@ -24,6 +25,7 @@ import { CreatePostDto, CreatePostSchema } from './dtos/create-post.dto';
 import { QueryPostDto, QueryPostSchema } from './dtos/query-post.dto';
 import { UpdatePostDto, UpdatePostSchema } from './dtos/update-post.dto';
 import { PostService } from './post.service';
+import { SuccessResponse } from 'src/shared/classes/success-response.class';
 
 @Controller({ path: 'post', version: '1' })
 export class PostController {
@@ -91,5 +93,17 @@ export class PostController {
     @Query('language') language: string,
   ) {
     return await this.postService.synthesizePostById(postId, language);
+  }
+
+  @Patch('/ai/:id')
+  async markPotentialViolatedByAi(
+    @Headers('open-api-key') apiKey: string,
+    @Param('id') postId: string,
+  ) {
+    var result = await this.postService.markPotentialViolatedByAi(
+      postId,
+      apiKey,
+    );
+    return new SuccessResponse('Done', result);
   }
 }

@@ -30,6 +30,7 @@ import {
   GetTopInteractivePostSchema,
 } from './dto/get-top-interactive-post.dto';
 import { GetTopTopicResponseSchema } from './dto/get-top-topic-response';
+import { PostStatus } from 'src/shared/enum/post-status.enum';
 
 @Injectable()
 export class AdminService {
@@ -268,25 +269,25 @@ export class AdminService {
       throw new NotFoundException(`Post with id ${postId} not found`);
     }
 
-    if (post.isFlagged) {
+    if (post.monitoringStatus === PostStatus.VIOLATED) {
       throw new ConflictException(
         `Post with id ${postId} has already been flagged`,
       );
     }
 
     try {
-      post.isFlagged = true;
+      post.monitoringStatus = PostStatus.VIOLATED;
       await post.save();
+
+      await this.mailingService.sendAdminWarningEmail(
+        post.author.email,
+        post.author.username,
+        postId,
+      );
     } catch (error) {
       console.error(`Error flagging post with id ${postId}:`, error);
       throw new InternalServerErrorException('Failed to flag post');
     }
-
-    await this.mailingService.sendAdminWarningEmail(
-      post.author.email,
-      post.author.username,
-      postId,
-    );
 
     return post;
   }
@@ -302,25 +303,25 @@ export class AdminService {
       throw new NotFoundException(`Post with id ${postId} not found`);
     }
 
-    if (!flaggedPost.isFlagged) {
+    if (flaggedPost.monitoringStatus === PostStatus.NORMAL) {
       throw new ConflictException(
         `Post with id ${postId} has not been flagged`,
       );
     }
 
     try {
-      flaggedPost.isFlagged = false;
+      flaggedPost.monitoringStatus = PostStatus.NORMAL;
       await flaggedPost.save();
+
+      await this.mailingService.sendAdminUnflagEmail(
+        flaggedPost.author.email,
+        flaggedPost.author.username,
+        postId,
+      );
     } catch (error) {
       console.error(`Error flagging post with id ${postId}:`, error);
       throw new InternalServerErrorException('Failed to flag post');
     }
-
-    await this.mailingService.sendAdminUnflagEmail(
-      flaggedPost.author.email,
-      flaggedPost.author.username,
-      postId,
-    );
 
     return flaggedPost;
   }

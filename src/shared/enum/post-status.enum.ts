@@ -1,0 +1,5 @@
+export enum PostStatus {
+  NORMAL = 'NORMAL',
+  POTENTIAL_VIOLATION = 'POTENTIAL_VIOLATION',
+  VIOLATED = 'VIOLATED',
+}

@@ -11,7 +11,7 @@ import {
 @Controller({ path: 'admin', version: '1' })
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
-  @Get('top-followed-user')
+  @Get('statistics/top-followed-user')
   async getTopFollowedUser(@Query('top') top?: number) {
     const res = await this.adminService.getTopFollowedUser(top);
     return new SuccessResponse('Get top followed user successfully', res);

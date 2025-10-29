@@ -1,17 +1,18 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/sequelize';
 import { Sequelize } from 'sequelize-typescript';
-import {
-  GetTopFollowedUserResponseDto,
-  GetTopFollowedUserResponseSchema,
-} from './dto/get-top-followed-user-response.dto';
-import { GetTopTopicResponseSchema } from './dto/get-top-topic-response';
-import { User } from 'src/user/model/user.model';
-import { Tag } from 'src/tag/model/tag.model';
-import { Follow } from 'src/follow/model/follow.model';
-import { Favorite } from 'src/favorite/model/favorite.model';
-import { Post } from 'src/post/model/post.model';
 import { Comment } from 'src/comment/model/comment.model';
+import { Favorite } from 'src/favorite/model/favorite.model';
+import { Follow } from 'src/follow/model/follow.model';
+import { MailingServiceService } from 'src/mailing-service/mailing-service.service';
+import { Post } from 'src/post/model/post.model';
+import { Tag } from 'src/tag/model/tag.model';
+import { User } from 'src/user/model/user.model';
 import {
   GetMonthlyStatisticsResponseDto,
   GetMonthlyStatisticsResponseSchema,
@@ -21,12 +22,18 @@ import {
   GetTagDistributionResponseSchema,
 } from './dto/get-tag-distribution-response.dto';
 import {
+  GetTopFollowedUserResponseDto,
+  GetTopFollowedUserResponseSchema,
+} from './dto/get-top-followed-user-response.dto';
+import {
   GetTopInteractivePostDto,
   GetTopInteractivePostSchema,
 } from './dto/get-top-interactive-post.dto';
+import { GetTopTopicResponseSchema } from './dto/get-top-topic-response';
+import { PostStatus } from 'src/shared/enum/post-status.enum';
 
 @Injectable()
-export class StatisticsService {
+export class AdminService {
   constructor(
     @InjectConnection()
     private readonly sequelize: Sequelize,
@@ -42,6 +49,8 @@ export class StatisticsService {
     private favoriteModel: typeof Favorite,
     @InjectModel(Comment)
     private commentModel: typeof Comment,
+
+    private readonly mailingService: MailingServiceService,
   ) {}
 
   async getTopFollowedUser(
@@ -247,6 +256,84 @@ export class StatisticsService {
     });
 
     return parsedResult;
+  }
+
+  async flagPost(postId: string): Promise<Post> {
+    var post = await this.postModel.findOne({
+      where: { id: postId },
+      include: [{ model: User, attributes: ['email', 'username'] }],
+      attributes: { exclude: ['content'] },
+    });
+
+    if (!post) {
+      throw new NotFoundException(`Post with id ${postId} not found`);
+    }
+
+    if (post.monitoringStatus === PostStatus.VIOLATED) {
+      throw new ConflictException(
+        `Post with id ${postId} has already been flagged`,
+      );
+    }
+
+    try {
+      post.monitoringStatus = PostStatus.VIOLATED;
+      await post.save();
+
+      await this.mailingService.sendAdminWarningEmail(
+        post.author.email,
+        post.author.username,
+        postId,
+      );
+    } catch (error) {
+      console.error(`Error flagging post with id ${postId}:`, error);
+      throw new InternalServerErrorException('Failed to flag post');
+    }
+
+    return post;
+  }
+
+  async unflagPost(postId: string): Promise<Post> {
+    var flaggedPost = await this.postModel.findOne({
+      where: { id: postId },
+      include: [{ model: User, attributes: ['email', 'username'] }],
+      attributes: { exclude: ['content'] },
+    });
+
+    if (!flaggedPost) {
+      throw new NotFoundException(`Post with id ${postId} not found`);
+    }
+
+    if (flaggedPost.monitoringStatus === PostStatus.NORMAL) {
+      throw new ConflictException(
+        `Post with id ${postId} has not been flagged`,
+      );
+    }
+
+    try {
+      flaggedPost.monitoringStatus = PostStatus.NORMAL;
+      await flaggedPost.save();
+
+      await this.mailingService.sendAdminUnflagEmail(
+        flaggedPost.author.email,
+        flaggedPost.author.username,
+        postId,
+      );
+    } catch (error) {
+      console.error(`Error flagging post with id ${postId}:`, error);
+      throw new InternalServerErrorException('Failed to flag post');
+    }
+
+    return flaggedPost;
+  }
+
+  async getPostsByMonitoringStatus(status: PostStatus): Promise<Post[]> {
+    const violatedPosts = await this.postModel.findAll({
+      where: { monitoringStatus: status },
+      include: [{ model: User, attributes: ['displayName', 'username'] }],
+      attributes: { exclude: ['content'] },
+    });
+
+    return violatedPosts;
   }
 }
 

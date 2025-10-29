@@ -8,12 +8,14 @@ import { SequelizeModule } from '@nestjs/sequelize';
 import { User } from 'src/user/model/user.model';
 import { SessionSerializer } from './strategies/session-serializer';
 import { GoogleStrategy } from './strategies/google.strategy';
+import { MailingServiceModule } from 'src/mailing-service/mailing-service.module';
 
 @Module({
   imports: [
     UserModule,
     SequelizeModule.forFeature([User]),
     PassportModule.register({ session: true }),
+    MailingServiceModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, LocalStrategy, SessionSerializer, GoogleStrategy],

@@ -160,7 +160,10 @@ export class PostService {
       },
       limit: limit,
       offset,
-      order: [['createdAt', 'DESC']],
+      order: [
+        ['monitoringStatus', 'ASC'],
+        ['createdAt', 'DESC'],
+      ],
       distinct: true, // Ensure distinct results when using include
     });
 
@@ -227,7 +230,10 @@ export class PostService {
       ],
       limit: pagination.limit,
       offset,
-      order: [['createdAt', 'DESC']],
+      order: [
+        ['monitoringStatus', 'ASC'],
+        ['createdAt', 'DESC'],
+      ],
     });
 
     return new PaginationWrapper<Post[]>(
@@ -252,6 +258,10 @@ export class PostService {
     followings.forEach(async (following, index) => {
       const post = await this.postModel.findAll({
         where: { authorId: following.authorId },
+        order: [
+          ['monitoringStatus', 'ASC'],
+          ['createdAt', 'DESC'],
+        ],
       });
       console.log(`post on ${index} itteration: `, post);
     });
@@ -375,6 +385,10 @@ export class PostService {
         title: { [Op.iLike]: `%${title}%` },
       },
       attributes: { exclude: ['content'] },
+      order: [
+        ['monitoringStatus', 'ASC'],
+        ['createdAt', 'DESC'],
+      ],
       include: [
         {
           model: User,
@@ -392,6 +406,10 @@ export class PostService {
         authorId: { [Op.in]: authorIds },
       },
       attributes: { exclude: ['content'] },
+      order: [
+        ['monitoringStatus', 'ASC'],
+        ['createdAt', 'DESC'],
+      ],
       include: [
         {
           model: User,

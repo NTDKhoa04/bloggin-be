@@ -69,7 +69,9 @@ export class SearchService {
       : posts;
 
     const result: SearchResponseDto = {
-      Posts: posts,
+      Posts: posts.sort((a, b) =>
+        a.monitoringStatus.localeCompare(b.monitoringStatus),
+      ),
       Authors: authors,
       Tags: tags,
     };

@@ -1,4 +1,11 @@
-import { Controller, Get, Param, Patch, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { SuccessResponse } from 'src/shared/classes/success-response.class';
 import { ZodValidationPipe } from 'src/shared/pipes/zod.pipe';
 import { AdminService } from './admin.service';
@@ -6,8 +13,9 @@ import {
   GetPostByMonitoringStatusDto,
   GetPostByMonitoringStatusSchema,
 } from './dto/get-post-by-monitoring-status.dto';
+import { AdminGuard } from 'src/auth/guards/admin.guard';
 
-// @UseGuards(AdminOnly)
+@UseGuards(AdminGuard)
 @Controller({ path: 'admin', version: '1' })
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}

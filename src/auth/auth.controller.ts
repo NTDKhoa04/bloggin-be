@@ -22,7 +22,7 @@ import { AuthService } from './auth.service';
 import { LoggedInOnly } from './guards/authenticated.guard';
 import { GoogleAuthenticated } from './guards/google.guard';
 import { LoginGuard } from './guards/login.guard';
-import { AdminOnly } from './guards/role.guard';
+import { AdminGuard } from './guards/admin.guard';
 
 export interface AuthenticatedRequest extends Request {
   user?: User;
@@ -91,7 +91,7 @@ export class AuthController {
     }
   }
 
-  @UseGuards(AdminOnly)
+  @UseGuards(AdminGuard)
   @Get('test-guard')
   async testGuard(@Req() req) {
     return req.user;

@@ -29,6 +29,7 @@ import { UpdatePostDto } from './dtos/update-post.dto';
 import { Post } from './model/post.model';
 import { PostStatus } from 'src/shared/enum/post-status.enum';
 import { ConfigService } from '@nestjs/config';
+import { SentimentAnalyzeService } from '../sentiment-analyze/sentiment-analyze.service';
 
 export const USER_ATTRIBUTES = [
   'username',
@@ -50,6 +51,7 @@ export class PostService {
     private readonly ttsService: TtsService,
     private readonly cloudinaryService: CloudinaryService,
     private readonly configService: ConfigService,
+    private readonly analyzeService: SentimentAnalyzeService,
   ) {}
 
   async create(createPostDto: CreatePostDto, thumbnail?: Express.Multer.File) {
@@ -74,10 +76,21 @@ export class PostService {
           throw new Error('Failed to upload thumbnail.');
         }
       }
+      console.log(this.analyzeService.jsonToString(content));
+      const violateCheck = await this.analyzeService.analyzeSentiment(
+        this.analyzeService.jsonToString(content),
+      );
+      console.log("Check if pass", violateCheck);
 
-      // Create post
+      // Create post with VIOLATED status if moderation check fails
       const post = await this.postModel.create(
-        { authorId, title, content, thumbnailUrl },
+        { 
+          authorId, 
+          title, 
+          content, 
+          thumbnailUrl,
+          monitoringStatus: violateCheck ? PostStatus.NORMAL : PostStatus.VIOLATED
+        },
         { transaction },
       );
 
@@ -279,7 +292,19 @@ export class PostService {
       throw new NotFoundException(`Post with id ${id} not found`);
     }
 
-    await post.update({ ...updatePostDto });
+    // Check moderation if content is being updated
+    let monitoringStatus = post.monitoringStatus;
+    if (updatePostDto.content) {
+      console.log('Checking moderation for updated content');
+      const violateCheck = await this.analyzeService.analyzeSentiment(
+        this.analyzeService.jsonToString(updatePostDto.content),
+      );
+      console.log('Moderation check result:', violateCheck);
+      
+      monitoringStatus = violateCheck ? PostStatus.NORMAL : PostStatus.VIOLATED;
+    }
+
+    await post.update({ ...updatePostDto, monitoringStatus });
     await this.deleteAudioResource(post);
     await post.save();
 
@@ -403,13 +428,7 @@ export class PostService {
     return posts;
   }
 
-  async markPotentialViolatedByAi(postId: string, apiKey: string) {
-    var validkey = this.configService.getOrThrow('OPENAI_API_KEY');
-
-    if (apiKey !== validkey) {
-      throw new UnauthorizedException('Invalid API Key, not allowed');
-    }
-
+  async markPotentialViolatedByAi(postId: string) {
     var { message, data: post } = await this.findOne(postId);
 
     if (!post) {
@@ -429,5 +448,15 @@ export class PostService {
     }
 
     return post;
+  }
+  async sample(){
+    const post = await this.postModel.findOne();
+
+    console.log(post);
+
+    if (!post) {
+      return "Sample";
+    }
+    return this.analyzeService.jsonToString(post.content.toString());
   }
 }

@@ -14,7 +14,7 @@ import {
   SuccessResponse,
 } from 'src/shared/classes/success-response.class';
 import { PaginationDto } from 'src/shared/classes/pagination.dto';
-import { CommentSentimentService } from 'src/comment-sentiment/comment-sentiment.service';
+import { SentimentAnalyzeService } from 'src/sentiment-analyze/sentiment-analyze.service';
 
 @Injectable()
 export class CommentService {
@@ -22,7 +22,7 @@ export class CommentService {
     @InjectModel(Comment) private commentModel: typeof Comment,
     @InjectModel(User) private userModel: typeof User,
     @InjectModel(Post) private postModel: typeof Post,
-    private readonly commentSentimentService: CommentSentimentService,
+    private readonly commentSentimentService: SentimentAnalyzeService,
   ) {}
 
   async create(createCommentDto: CreateCommentDto, authorId: string) {

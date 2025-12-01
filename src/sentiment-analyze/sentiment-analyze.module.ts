@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { CommentSentimentService } from './sentiment-analyze.service';
+import { SentimentAnalyzeService } from './sentiment-analyze.service';
 
 @Module({
-  providers: [CommentSentimentService],
-  exports: [CommentSentimentModule, CommentSentimentService],
+  providers: [SentimentAnalyzeService],
+  exports: [SentimentAnalyzeModule, SentimentAnalyzeService],
 })
-export class CommentSentimentModule {}
+export class SentimentAnalyzeModule {}

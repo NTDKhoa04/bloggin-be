@@ -7,7 +7,7 @@ const openai = new OpenAI({
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
-export class CommentSentimentService {
+export class SentimentAnalyzeService {
   async analyzeSentiment(comment: string): Promise<boolean> {
     const moderation = await openai.moderations.create({
       model: 'omni-moderation-latest',

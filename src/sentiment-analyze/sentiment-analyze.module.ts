@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { CommentSentimentService } from './comment-sentiment.service';
+import { CommentSentimentService } from './sentiment-analyze.service';
 
 @Module({
   providers: [CommentSentimentService],

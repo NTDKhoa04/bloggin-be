@@ -5,12 +5,12 @@ import { SequelizeModule } from '@nestjs/sequelize';
 import { Comment } from './model/comment.model';
 import { User } from 'src/user/model/user.model';
 import { Post } from 'src/post/model/post.model';
-import { CommentSentimentModule } from '../comment-sentiment/comment-sentiment.module';
+import { SentimentAnalyzeModule } from '../sentiment-analyze/sentiment-analyze.module';
 
 @Module({
   imports: [
     SequelizeModule.forFeature([Comment, User, Post]),
-    CommentSentimentModule,
+    SentimentAnalyzeModule,
   ],
   controllers: [CommentController],
   providers: [CommentService],

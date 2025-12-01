@@ -12,6 +12,7 @@ import { Post } from './model/post.model';
 import { PostController } from './post.controller';
 import { PostService } from './post.service';
 import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
+import { SentimentAnalyzeModule } from '../sentiment-analyze/sentiment-analyze.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
     TagModule,
     TtsModule,
     CloudinaryModule,
+    SentimentAnalyzeModule,
   ],
   controllers: [PostController],
   providers: [PostService],

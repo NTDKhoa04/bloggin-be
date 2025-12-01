@@ -97,13 +97,15 @@ export class PostController {
 
   @Patch('/ai/:id')
   async markPotentialViolatedByAi(
-    @Headers('open-api-key') apiKey: string,
     @Param('id') postId: string,
   ) {
     var result = await this.postService.markPotentialViolatedByAi(
-      postId,
-      apiKey,
+      postId
     );
     return new SuccessResponse('Done', result);
+  }
+  @Get('/sample')
+  async getSamplePosts() {
+    return this.postService.sample();
   }
 }

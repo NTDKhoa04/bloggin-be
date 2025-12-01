@@ -25,7 +25,7 @@ import { Follow } from './follow/model/follow.model';
 import { FavoriteModule } from './favorite/favorite.module';
 import { TtsModule } from './tts/tts.module';
 import { AdminModule } from './admin/admin.module';
-import { CommentSentimentModule } from './comment-sentiment/comment-sentiment.module';
+import { SentimentAnalyzeModule } from './sentiment-analyze/sentiment-analyze.module';
 import { SearchModule } from './search/search.module';
 import { MailingServiceModule } from './mailing-service/mailing-service.module';
 
@@ -61,7 +61,7 @@ import { MailingServiceModule } from './mailing-service/mailing-service.module';
     FavoriteModule,
     TtsModule,
     AdminModule,
-    CommentSentimentModule,
+    SentimentAnalyzeModule,
     SearchModule,
     MailingServiceModule,
   ],

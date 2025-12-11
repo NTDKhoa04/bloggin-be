@@ -28,6 +28,7 @@ import { AdminModule } from './admin/admin.module';
 import { SentimentAnalyzeModule } from './sentiment-analyze/sentiment-analyze.module';
 import { SearchModule } from './search/search.module';
 import { MailingServiceModule } from './mailing-service/mailing-service.module';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
@@ -64,6 +65,7 @@ import { MailingServiceModule } from './mailing-service/mailing-service.module';
     SentimentAnalyzeModule,
     SearchModule,
     MailingServiceModule,
+    RedisModule,
   ],
   controllers: [AppController],
   providers: [AppService, AdminGuard],

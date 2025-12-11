@@ -3,7 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  Headers,
   Param,
   Patch,
   Post,
@@ -96,12 +95,8 @@ export class PostController {
   }
 
   @Patch('/ai/:id')
-  async markPotentialViolatedByAi(
-    @Param('id') postId: string,
-  ) {
-    var result = await this.postService.markPotentialViolatedByAi(
-      postId
-    );
+  async markPotentialViolatedByAi(@Param('id') postId: string) {
+    var result = await this.postService.markPotentialViolatedByAi(postId);
     return new SuccessResponse('Done', result);
   }
   @Get('/sample')

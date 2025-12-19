@@ -28,6 +28,8 @@ import { AdminModule } from './admin/admin.module';
 import { SentimentAnalyzeModule } from './sentiment-analyze/sentiment-analyze.module';
 import { SearchModule } from './search/search.module';
 import { MailingServiceModule } from './mailing-service/mailing-service.module';
+import { PaymentModule } from './payment/payment.module';
+import { Payment } from './payment/model/payment.model';
 import { RedisModule } from './redis/redis.module';
 
 @Module({
@@ -45,7 +47,7 @@ import { RedisModule } from './redis/redis.module';
         autoLoadModels: true,
         sync: { alter: true },
         logging: false,
-        models: [User, Post, Tag, Post_Tag, Draft, Comment, Follow],
+        models: [User, Post, Tag, Post_Tag, Draft, Comment, Follow, Payment],
       }),
     }),
     ScheduleModule.forRoot(),
@@ -65,6 +67,7 @@ import { RedisModule } from './redis/redis.module';
     SentimentAnalyzeModule,
     SearchModule,
     MailingServiceModule,
+    PaymentModule,
     RedisModule,
   ],
   controllers: [AppController],

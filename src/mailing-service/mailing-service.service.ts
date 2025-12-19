@@ -16,6 +16,7 @@ import {
   AdminWarningReplacementsDto,
   EmailVerificationReplacementsDto,
   MailReplacementsDto,
+  PaymentCompletedReplacementsDto,
 } from './dto/mail-replacements.dto';
 import MailContentDto from './dto/mail-content.dto';
 import * as Redis from 'redis';
@@ -296,6 +297,44 @@ export class MailingServiceService {
       await this.transporter.sendMail(mailContent);
     } catch (error) {
       console.error('Error sending admin warning email:', error);
+    }
+  }
+
+  async sendPaymentCompletedEmail(
+    username: string,
+    transactionId: string,
+    date: string,
+    amount: number,
+    email: string,
+  ) {
+    var baseFrontendUrl = this.configService.getOrThrow('BASE_FRONTEND_URL');
+
+    var dashboardLink = baseFrontendUrl + '/setting/profile';
+
+    var replacements: PaymentCompletedReplacementsDto = {
+      username: username,
+      transactionId: transactionId,
+      date: date,
+      amount: amount.toString(),
+      dashboardLink: dashboardLink,
+    };
+
+    var htmlString = this.getHtmlString(
+      MailTemplatesEnum.PAYMENT_COMPLETED,
+      replacements,
+    );
+
+    var mailContent: MailContentDto = {
+      from: 'info@bloggin.blog',
+      to: email,
+      subject: 'Bloggin - Your account has been upgraded',
+      html: htmlString,
+    };
+
+    try {
+      await this.transporter.sendMail(mailContent);
+    } catch (error) {
+      console.error('Error sending payment email:', error);
     }
   }
 }

@@ -14,6 +14,7 @@ import {
   GetPostByMonitoringStatusSchema,
 } from './dto/get-post-by-monitoring-status.dto';
 import { AdminGuard } from 'src/auth/guards/admin.guard';
+import { GetUserPaymentResponseSchemaArray } from './dto/get-user-payment-response.dto';
 
 @Controller({ path: 'admin', version: '1' })
 export class AdminController {
@@ -92,5 +93,15 @@ export class AdminController {
       query.status,
     );
     return new SuccessResponse(`Get ${query.status} post successfully`, res);
+  }
+
+  @UseGuards(AdminGuard)
+  @Get('payments')
+  async getAllUserPaymentsAdminAsync() {
+    var result = await this.adminService.getAllUserPaymentsAdminAsync();
+
+    var response = GetUserPaymentResponseSchemaArray.parse(result);
+
+    return new SuccessResponse('Get all user payments successfully', response);
   }
 }

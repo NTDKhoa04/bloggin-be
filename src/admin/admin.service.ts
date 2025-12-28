@@ -341,7 +341,7 @@ export class AdminService {
 
   async getAllUserPaymentsAdminAsync(): Promise<Payment[]> {
     return await this.paymentModel.findAll({
-      include: [{ model: User, attributes: ['username', 'email'] }],
+      include: [{ model: User, attributes: ['id', 'username', 'email'] }],
     });
   }
 }

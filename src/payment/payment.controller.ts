@@ -49,7 +49,7 @@ export class PaymentController {
     }
 
     var result = await this.paymentService.createNewPendingPaymentAsync(id);
-    return new SuccessResponse('Pending payment created', result);
+    return result;
   }
 
   @UseGuards(LoggedInOnly, AccountVerifiedGuard)
@@ -65,7 +65,7 @@ export class PaymentController {
       return new SuccessResponse('User has no pending payment', null);
     }
 
-    return new SuccessResponse('Pending payment retrieved', result);
+    return result;
   }
 
   @UseGuards(LoggedInOnly)
@@ -81,6 +81,6 @@ export class PaymentController {
       return new SuccessResponse('User has no payment', null);
     }
 
-    return new SuccessResponse('Payment retrieved', result);
+    return result;
   }
 }

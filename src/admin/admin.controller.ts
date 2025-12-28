@@ -102,6 +102,6 @@ export class AdminController {
 
     var response = GetUserPaymentResponseSchemaArray.parse(result);
 
-    return new SuccessResponse('Get all user payments successfully', response);
+    return response;
   }
 }

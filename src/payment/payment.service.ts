@@ -27,27 +27,48 @@ export class PaymentService {
     private readonly mailingService: MailingServiceService,
   ) {}
 
+  private parsePaymentContent(content: string): {
+    paymentId: string;
+    userId: string;
+  } | null {
+    // Expected format: two UUIDs concatenated without hyphens (64 characters total)
+    if (content.length !== 64) {
+      return null;
+    }
+
+    // Split into two 32-character strings
+    const paymentIdRaw = content.substring(0, 32);
+    const userIdRaw = content.substring(32, 64);
+
+    // Convert each 32-char string back to UUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)
+    const formatUuid = (raw: string): string => {
+      return `${raw.substring(0, 8)}-${raw.substring(8, 12)}-${raw.substring(12, 16)}-${raw.substring(16, 20)}-${raw.substring(20, 32)}`;
+    };
+
+    return {
+      paymentId: formatUuid(paymentIdRaw),
+      userId: formatUuid(userIdRaw),
+    };
+  }
+
   async handleSepayCallbackAsync(
     callbackBody: SepayCallbackBodyDto,
   ): Promise<void> {
-    var [paymentId, userId] = callbackBody.content.split('|');
+    const parsed = this.parsePaymentContent(callbackBody.content);
 
-    if (!paymentId || !userId) {
-      if (!paymentId) {
-        console.error(
-          'Payment ID missing in Sepay callback content with id:',
-          callbackBody.id,
-        );
-      }
-
-      if (!userId) {
-        console.error(
-          'User Id missing in Sepay callback contentwith id:',
-          callbackBody.id,
-        );
-      }
+    if (!parsed) {
+      console.error(
+        'Invalid payment content format in Sepay callback with id:',
+        callbackBody.id,
+        'Content:',
+        callbackBody.content,
+      );
       return;
     }
+
+    const { paymentId, userId } = parsed;
+
+    console.log('paymentId:', paymentId, 'userId:', userId);
 
     var user = await this.userModel.findByPk(userId);
 

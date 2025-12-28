@@ -14,6 +14,8 @@ import {
 import { LoginMethodEmun } from 'src/shared/enum/login-method.enum';
 import { Comment } from 'src/comment/model/comment.model';
 import { Follow } from 'src/follow/model/follow.model';
+import { RoleEnum } from 'src/shared/enum/role.enum';
+import { Payment } from 'src/payment/model/payment.model';
 @Table
 export class User extends Model {
   @PrimaryKey
@@ -55,11 +57,12 @@ export class User extends Model {
   @Column
   isVerified: boolean;
 
-  @Default(false)
+  @Default(RoleEnum.USER)
+  @AllowNull(true)
   @Column({
-    type: DataType.BOOLEAN,
+    type: DataType.ENUM(...Object.values(RoleEnum)),
   })
-  isAdmin: boolean;
+  role: RoleEnum;
 
   @Default(LoginMethodEmun.LOCAL)
   @Column({
@@ -75,4 +78,7 @@ export class User extends Model {
 
   @BelongsToMany(() => User, () => Follow, 'authorId', 'followerId')
   followers: User[];
+
+  @HasMany(() => Payment)
+  payments: Payment[];
 }

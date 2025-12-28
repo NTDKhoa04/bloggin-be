@@ -12,3 +12,10 @@ export interface EmailVerificationReplacementsDto extends MailReplacementsDto {
 
 export interface AdminUnflagReplacementsDto
   extends AdminWarningReplacementsDto {}
+
+export interface PaymentCompletedReplacementsDto extends MailReplacementsDto {
+  transactionId: string;
+  date: string;
+  amount: string;
+  dashboardLink: string;
+}

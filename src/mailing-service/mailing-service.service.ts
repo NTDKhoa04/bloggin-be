@@ -16,6 +16,7 @@ import {
   AdminWarningReplacementsDto,
   EmailVerificationReplacementsDto,
   MailReplacementsDto,
+  PaymentCompletedReplacementsDto,
 } from './dto/mail-replacements.dto';
 import MailContentDto from './dto/mail-content.dto';
 import * as Redis from 'redis';
@@ -27,6 +28,7 @@ import {
   ValidationErrorDetail,
 } from 'src/shared/classes/validation-error.class';
 import { VerificationProblemsEnum } from 'src/shared/enum/verification-problems.enum';
+import { RedisService } from 'src/redis/redis.service';
 
 @Injectable()
 export class MailingServiceService {
@@ -35,7 +37,6 @@ export class MailingServiceService {
     Options
   >;
 
-  private readonly redisClient: Redis.RedisClientType;
   private TOKEN_TTL_SECONDS: number = 900; //15 minutes
   private readonly TOKEN_PREFIX: string = 'email_verify:token:';
   private readonly LOOKUP_TOKEN_PREFIX: string = 'email_verify:lookup:';
@@ -45,6 +46,8 @@ export class MailingServiceService {
     private userModel: typeof User,
 
     private readonly configService: ConfigService,
+
+    private readonly redisService: RedisService,
   ) {
     this.transporter = nodemailer.createTransport({
       host: configService.getOrThrow('MAILTRAP_HOST'),
@@ -54,12 +57,6 @@ export class MailingServiceService {
         pass: configService.getOrThrow('MAILTRAP_PASS'),
       },
     });
-
-    this.redisClient = Redis.createClient({ url: 'redis://redis:6379' });
-    this.redisClient.on('error', (err) =>
-      console.error('Redis Client Error', err),
-    );
-    this.redisClient.connect();
   }
 
   private addReplacements(
@@ -95,14 +92,18 @@ export class MailingServiceService {
       var token = crypto.randomBytes(32).toString('hex');
 
       //Official token
-      await this.redisClient.set(this.TOKEN_PREFIX + token, userId, {
-        EX: this.TOKEN_TTL_SECONDS,
-      });
+      await this.redisService.set(
+        this.TOKEN_PREFIX + token,
+        userId,
+        this.TOKEN_TTL_SECONDS,
+      );
 
       //Lookup token
-      await this.redisClient.set(this.LOOKUP_TOKEN_PREFIX + email, email, {
-        EX: this.TOKEN_TTL_SECONDS,
-      });
+      await this.redisService.set(
+        this.LOOKUP_TOKEN_PREFIX + email,
+        email,
+        this.TOKEN_TTL_SECONDS,
+      );
 
       return token;
     } catch (err) {
@@ -144,7 +145,7 @@ export class MailingServiceService {
   }
 
   public async resendVerificationEmail(email: string) {
-    var lookupToken = await this.redisClient.get(
+    var lookupToken = await this.redisService.get(
       this.LOOKUP_TOKEN_PREFIX + email,
     );
 
@@ -186,7 +187,7 @@ export class MailingServiceService {
   }
 
   public async verifyEmail(token: string): Promise<void> {
-    var userId = await this.redisClient.get(this.TOKEN_PREFIX + token);
+    var userId = await this.redisService.get(this.TOKEN_PREFIX + token);
 
     if (!userId) {
       throw new BadRequestException(
@@ -237,8 +238,8 @@ export class MailingServiceService {
       { where: { id: userId } },
     );
 
-    await this.redisClient.del(this.TOKEN_PREFIX + token);
-    await this.redisClient.del(this.LOOKUP_TOKEN_PREFIX + user.email);
+    await this.redisService.del(this.TOKEN_PREFIX + token);
+    await this.redisService.del(this.LOOKUP_TOKEN_PREFIX + user.email);
   }
 
   async sendAdminWarningEmail(email: string, username: string, postId: string) {
@@ -296,6 +297,44 @@ export class MailingServiceService {
       await this.transporter.sendMail(mailContent);
     } catch (error) {
       console.error('Error sending admin warning email:', error);
+    }
+  }
+
+  async sendPaymentCompletedEmail(
+    username: string,
+    transactionId: string,
+    date: string,
+    amount: number,
+    email: string,
+  ) {
+    var baseFrontendUrl = this.configService.getOrThrow('BASE_FRONTEND_URL');
+
+    var dashboardLink = baseFrontendUrl + '/setting/profile';
+
+    var replacements: PaymentCompletedReplacementsDto = {
+      username: username,
+      transactionId: transactionId,
+      date: date,
+      amount: amount.toString(),
+      dashboardLink: dashboardLink,
+    };
+
+    var htmlString = this.getHtmlString(
+      MailTemplatesEnum.PAYMENT_COMPLETED,
+      replacements,
+    );
+
+    var mailContent: MailContentDto = {
+      from: 'info@bloggin.blog',
+      to: email,
+      subject: 'Bloggin - Your account has been upgraded',
+      html: htmlString,
+    };
+
+    try {
+      await this.transporter.sendMail(mailContent);
+    } catch (error) {
+      console.error('Error sending payment email:', error);
     }
   }
 }

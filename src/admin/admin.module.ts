@@ -9,10 +9,19 @@ import { Follow } from 'src/follow/model/follow.model';
 import { Comment } from 'src/comment/model/comment.model';
 import { Post } from 'src/post/model/post.model';
 import { MailingServiceModule } from 'src/mailing-service/mailing-service.module';
+import { Payment } from 'src/payment/model/payment.model';
 
 @Module({
   imports: [
-    SequelizeModule.forFeature([Post, User, Tag, Follow, Favorite, Comment]),
+    SequelizeModule.forFeature([
+      Post,
+      User,
+      Tag,
+      Follow,
+      Favorite,
+      Comment,
+      Payment,
+    ]),
     MailingServiceModule,
   ],
   controllers: [AdminController],

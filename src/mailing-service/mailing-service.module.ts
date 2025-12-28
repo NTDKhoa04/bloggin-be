@@ -3,10 +3,10 @@ import { MailingServiceService } from './mailing-service.service';
 import { MailingServiceController } from './mailing-service.controller';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { User } from 'src/user/model/user.model';
-import { UserModule } from 'src/user/user.module';
+import { RedisModule } from 'src/redis/redis.module';
 
 @Module({
-  imports: [SequelizeModule.forFeature([User])],
+  imports: [SequelizeModule.forFeature([User]), RedisModule],
   providers: [MailingServiceService],
   controllers: [MailingServiceController],
   exports: [MailingServiceService],

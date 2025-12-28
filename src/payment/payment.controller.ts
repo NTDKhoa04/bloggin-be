@@ -37,8 +37,7 @@ export class PaymentController {
     @Body(new ZodValidationPipe(SepayCallbackBodySchema))
     callbackBody: SepayCallbackBodyDto,
   ) {
-    await this.paymentService.createNewPendingPaymentAsync('user-123');
-    return;
+    return callbackBody;
   }
 
   @UseGuards(LoggedInOnly, AccountVerifiedGuard)

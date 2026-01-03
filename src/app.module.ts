@@ -28,6 +28,9 @@ import { AdminModule } from './admin/admin.module';
 import { SentimentAnalyzeModule } from './sentiment-analyze/sentiment-analyze.module';
 import { SearchModule } from './search/search.module';
 import { MailingServiceModule } from './mailing-service/mailing-service.module';
+import { CollaboratorModule } from './collaborator/collaborator.module';
+import { Collaborator } from './collaborator/model/collaborator.model';
+import { CollaborationModule } from './collaboration/collaboration.module';
 
 @Module({
   imports: [
@@ -44,7 +47,7 @@ import { MailingServiceModule } from './mailing-service/mailing-service.module';
         autoLoadModels: true,
         sync: { alter: true },
         logging: false,
-        models: [User, Post, Tag, Post_Tag, Draft, Comment, Follow],
+        models: [User, Post, Tag, Post_Tag, Draft, Comment, Follow, Collaborator],
       }),
     }),
     ScheduleModule.forRoot(),
@@ -64,6 +67,8 @@ import { MailingServiceModule } from './mailing-service/mailing-service.module';
     SentimentAnalyzeModule,
     SearchModule,
     MailingServiceModule,
+    CollaboratorModule,
+    CollaborationModule,
   ],
   controllers: [AppController],
   providers: [AppService, AdminOnly],

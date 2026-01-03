@@ -13,13 +13,16 @@ import {
 } from 'src/shared/classes/success-response.class';
 import { User } from 'src/user/model/user.model';
 import { PaginationDto } from 'src/shared/classes/pagination.dto';
+import { CollaboratorService, DraftPermission } from 'src/collaborator/collaborator.service';
+import { Collaborator } from 'src/collaborator/model/collaborator.model';
 
 @Injectable()
 export class DraftService {
   constructor(
     @InjectModel(Draft) private DraftModel: typeof Draft,
     @InjectModel(User) private userModel: typeof User,
-  ) {}
+    private collaboratorService: CollaboratorService,
+  ) { }
 
   async create(createDraftDto: CreateDraftDto) {
     const draft = await this.DraftModel.create(createDraftDto);
@@ -68,7 +71,14 @@ export class DraftService {
       throw new NotFoundException(`Draft with id ${id} not found`);
     }
 
-    if (draft.authorId !== authorId) {
+    // Check if user is owner or has write permission (editor)
+    const hasPermission = await this.collaboratorService.checkPermission(
+      id,
+      authorId,
+      DraftPermission.WRITE,
+    );
+
+    if (!hasPermission) {
       throw new ForbiddenException(`You are not allowed to update this draft`);
     }
 
@@ -78,14 +88,66 @@ export class DraftService {
     return new SuccessResponse<Draft>('Draft updated successfully', draft);
   }
 
-  async remove(id: string) {
+  async remove(id: string, userId: string) {
     const draft = await this.DraftModel.findByPk(id);
     if (!draft) {
       throw new NotFoundException(`Draft with id ${id} not found`);
     }
 
+    // Check if user is owner or has write permission (editor)
+    const hasPermission = await this.collaboratorService.checkPermission(
+      id,
+      userId,
+      DraftPermission.WRITE,
+    );
+
+    if (!hasPermission) {
+      throw new ForbiddenException(`You are not allowed to delete this draft`);
+    }
+
+    // Remove all collaborators first to satisfy foreign key constraints
+    await this.collaboratorService.removeAllCollaborators(id);
+
     await draft.destroy();
 
     return new SuccessResponse<Draft>('Draft deleted successfully', undefined);
   }
+
+  async saveYjsContent(draftId: string, yjsContent: string): Promise<void> {
+    const draft = await this.DraftModel.findByPk(draftId);
+
+    if (!draft) {
+      throw new NotFoundException(`Draft with id ${draftId} not found`);
+    }
+
+    draft.yjsContent = yjsContent;
+    await draft.save();
+  }
+
+  async findCollaboratedDrafts(userId: string, pagination: PaginationDto) {
+    const offset = (pagination.page - 1) * pagination.limit;
+
+    const { rows: drafts, count } = await this.DraftModel.findAndCountAll({
+      include: [
+        {
+          model: Collaborator,
+          where: { userId },
+          required: true,
+          attributes: [],
+        },
+      ],
+      offset,
+      limit: pagination.limit,
+      order: [['updatedAt', 'DESC']],
+    });
+
+    return new PaginationWrapper<Draft[]>(
+      'Collaborated Drafts Found',
+      drafts,
+      count,
+      pagination.page ?? 1,
+      pagination.limit ?? 10,
+    );
+  }
 }
+

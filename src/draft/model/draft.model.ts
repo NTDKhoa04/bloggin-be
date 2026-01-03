@@ -4,10 +4,12 @@ import {
   Column,
   DataType,
   Default,
+  HasMany,
   Model,
   PrimaryKey,
   Table,
 } from 'sequelize-typescript';
+import { Collaborator } from 'src/collaborator/model/collaborator.model';
 
 @Table({ timestamps: true })
 export class Draft extends Model {
@@ -27,4 +29,11 @@ export class Draft extends Model {
   @AllowNull(false)
   @Column(DataType.JSON)
   content: object;
+
+  @AllowNull(true)
+  @Column(DataType.TEXT)
+  yjsContent: string;
+
+  @HasMany(() => Collaborator)
+  collaborators: Collaborator[];
 }

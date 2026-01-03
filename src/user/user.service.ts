@@ -75,7 +75,7 @@ export class UserService {
 
     const resultWithTags = (
       await this.sequelize.query(`
-        select distinct "Users".id, username, email, "displayName", "avatarUrl", "isVerified", "isAdmin", "loginMethod", "Users"."createdAt", "Users"."updatedAt", "specialties", "about"
+        select distinct "Users".id, username, email, "displayName", "avatarUrl", "isVerified", "role", "loginMethod", "Users"."createdAt", "Users"."updatedAt", "specialties", "about"
           from "Users", "Posts", "Tags", "Post_Tags"
           where "Tags".name = '${tag}'
           and "Users"."id" = "Posts"."authorId"

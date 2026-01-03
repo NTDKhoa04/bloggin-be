@@ -15,7 +15,7 @@ import { Post_Tag } from './post-tag/model/post-tag.model';
 import { ScheduleModule } from '@nestjs/schedule';
 import { PassportModule } from '@nestjs/passport';
 import { DraftModule } from './draft/draft.module';
-import { AdminOnly } from './auth/guards/role.guard';
+import { AdminGuard } from './auth/guards/admin.guard';
 import { Draft } from './draft/model/draft.model';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { FollowModule } from './follow/follow.module';
@@ -31,6 +31,9 @@ import { MailingServiceModule } from './mailing-service/mailing-service.module';
 import { CollaboratorModule } from './collaborator/collaborator.module';
 import { Collaborator } from './collaborator/model/collaborator.model';
 import { CollaborationModule } from './collaboration/collaboration.module';
+import { PaymentModule } from './payment/payment.module';
+import { Payment } from './payment/model/payment.model';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
@@ -47,7 +50,7 @@ import { CollaborationModule } from './collaboration/collaboration.module';
         autoLoadModels: true,
         sync: { alter: true },
         logging: false,
-        models: [User, Post, Tag, Post_Tag, Draft, Comment, Follow, Collaborator],
+        models: [User, Post, Tag, Post_Tag, Draft, Comment, Follow, Collaborator, Payment],
       }),
     }),
     ScheduleModule.forRoot(),
@@ -69,8 +72,10 @@ import { CollaborationModule } from './collaboration/collaboration.module';
     MailingServiceModule,
     CollaboratorModule,
     CollaborationModule,
+    PaymentModule,
+    RedisModule,
   ],
   controllers: [AppController],
-  providers: [AppService, AdminOnly],
+  providers: [AppService, AdminGuard],
 })
 export class AppModule {}

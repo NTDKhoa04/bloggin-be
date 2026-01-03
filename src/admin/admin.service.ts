@@ -31,6 +31,7 @@ import {
 } from './dto/get-top-interactive-post.dto';
 import { GetTopTopicResponseSchema } from './dto/get-top-topic-response';
 import { PostStatus } from 'src/shared/enum/post-status.enum';
+import { Payment } from 'src/payment/model/payment.model';
 
 @Injectable()
 export class AdminService {
@@ -49,6 +50,8 @@ export class AdminService {
     private favoriteModel: typeof Favorite,
     @InjectModel(Comment)
     private commentModel: typeof Comment,
+    @InjectModel(Payment)
+    private paymentModel: typeof Payment,
 
     private readonly mailingService: MailingServiceService,
   ) {}
@@ -334,6 +337,12 @@ export class AdminService {
     });
 
     return violatedPosts;
+  }
+
+  async getAllUserPaymentsAdminAsync(): Promise<Payment[]> {
+    return await this.paymentModel.findAll({
+      include: [{ model: User, attributes: ['id', 'username', 'email'] }],
+    });
   }
 }
 

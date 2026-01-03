@@ -1,4 +1,3 @@
-import { spec } from 'node:test/reporters';
 import { LoginMethodEmun } from 'src/shared/enum/login-method.enum';
 import { z } from 'zod';
 
@@ -16,13 +15,10 @@ export const CreateUserSchema = z.object({
 
 export type CreateUserDto = z.infer<typeof CreateUserSchema>;
 
-export const CreateLocalUserSchema = CreateUserSchema.refine(
-  (data) => !!data.password,
-  {
-    message: 'Password is required for local authentication',
-    path: ['password'],
-  },
-);
+export const CreateLocalUserSchema = CreateUserSchema.strict().omit({
+  isVerified: true,
+  loginMethod: true,
+});
 export type CreateLocalUserDto = z.infer<typeof CreateLocalUserSchema>;
 
 export const CreateGoogleUserSchema = CreateUserSchema.omit({

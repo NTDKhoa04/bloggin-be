@@ -35,7 +35,7 @@ export const USER_ATTRIBUTES = [
   'username',
   'displayName',
   'avatarUrl',
-  'isAdmin',
+  'role',
   'email',
 ];
 

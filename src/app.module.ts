@@ -28,6 +28,9 @@ import { AdminModule } from './admin/admin.module';
 import { SentimentAnalyzeModule } from './sentiment-analyze/sentiment-analyze.module';
 import { SearchModule } from './search/search.module';
 import { MailingServiceModule } from './mailing-service/mailing-service.module';
+import { CollaboratorModule } from './collaborator/collaborator.module';
+import { Collaborator } from './collaborator/model/collaborator.model';
+import { CollaborationModule } from './collaboration/collaboration.module';
 import { PaymentModule } from './payment/payment.module';
 import { Payment } from './payment/model/payment.model';
 import { RedisModule } from './redis/redis.module';
@@ -47,7 +50,7 @@ import { RedisModule } from './redis/redis.module';
         autoLoadModels: true,
         sync: { alter: true },
         logging: false,
-        models: [User, Post, Tag, Post_Tag, Draft, Comment, Follow, Payment],
+        models: [User, Post, Tag, Post_Tag, Draft, Comment, Follow, Collaborator, Payment],
       }),
     }),
     ScheduleModule.forRoot(),
@@ -67,6 +70,8 @@ import { RedisModule } from './redis/redis.module';
     SentimentAnalyzeModule,
     SearchModule,
     MailingServiceModule,
+    CollaboratorModule,
+    CollaborationModule,
     PaymentModule,
     RedisModule,
   ],

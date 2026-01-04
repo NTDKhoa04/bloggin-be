@@ -14,6 +14,7 @@ import {
 import { LoginMethodEmun } from 'src/shared/enum/login-method.enum';
 import { Comment } from 'src/comment/model/comment.model';
 import { Follow } from 'src/follow/model/follow.model';
+import { Collaborator } from 'src/collaborator/model/collaborator.model';
 import { RoleEnum } from 'src/shared/enum/role.enum';
 import { Payment } from 'src/payment/model/payment.model';
 @Table
@@ -81,4 +82,7 @@ export class User extends Model {
 
   @HasMany(() => Payment)
   payments: Payment[];
+
+  @HasMany(() => Collaborator)
+  collaborations: Collaborator[];
 }

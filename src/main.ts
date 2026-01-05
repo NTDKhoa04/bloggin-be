@@ -33,15 +33,32 @@ async function bootstrap() {
       cookie: {
         maxAge: 1000 * 60 * 60 * 24 * 7,
         httpOnly: true,
-        secure: false,
+        secure: configService.get('NODE_ENV') === 'production', // HTTPS only in production
       },
     }),
   );
 
   app.use(passport.initialize());
   app.use(passport.session());
+
+  const allowedOrigins = [
+    'http://localhost:3000',
+    'https://www.bloggin.blog',
+    'https://bloggin.blog',
+    'https://my.sepay.vn/',
+  ];
+
   app.enableCors({
-    origin: 'http://localhost:3000',
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, curl, Postman)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   });

@@ -1,41 +1,134 @@
 services:
   app:
-    image: node:23-alpine
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
     ports:
       - '8080:8080'
-    working_dir: /app
-    volumes:
-      - .:/app
-    command: sh -c "npm run build && npm run start:dev"
+    restart: unless-stopped
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
+      NODE_ENV: production
       DB_HOST: ${DB_HOST}
       DB_PORT: ${DB_PORT}
-      DB_USER: ${DB_USER}
+      DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
       OPENAI_API_KEY: ${OPENAI_API_KEY}
+      SESSION_SECRET: ${SESSION_SECRET}
+      OAUTH_CLIENT_ID: ${OAUTH_CLIENT_ID}
+      OAUTH_CLIENT_SECRET: ${OAUTH_CLIENT_SECRET}
+      OAUTH_CALLBACK_URL: ${OAUTH_CALLBACK_URL}
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+      GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS}
+      MAILTRAP_HOST: ${MAILTRAP_HOST}
+      MAILTRAP_PORT: ${MAILTRAP_PORT}
+      MAILTRAP_USER: ${MAILTRAP_USER}
+      MAILTRAP_PASS: ${MAILTRAP_PASS}
+      BASE_BACKEND_URL: ${BASE_BACKEND_URL}
+      BASE_FRONTEND_URL: ${BASE_FRONTEND_URL}
+      SEPAY_API_KEY: ${SEPAY_API_KEY}
+    # healthcheck:
+    #   test:
+    #     [
+    #       'CMD',
+    #       'node',
+    #       '-e',
+    #       "require('http').get('http://localhost:8080/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})",
+    #     ]
+    #   interval: 30s
+    #   timeout: 3s
+    #   retries: 3
+    #   start_period: 40s
+    networks:
+      - bloggin-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    security_opt:
+      - no-new-privileges:true
+    read_only: false
+    tmpfs:
+      - /tmp
 
   db:
     image: postgres:17.2
     ports:
       - '5432:5432'
+    restart: unless-stopped
     environment:
       POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
+      POSTGRES_INITDB_ARGS: '-E UTF8'
     volumes:
       - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - bloggin-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    security_opt:
+      - no-new-privileges:true
+
   redis:
     image: redis:7.4.2-alpine
     ports:
       - '6379:6379'
-    expose:
-      - 6379
+    restart: unless-stopped
+    command: redis-server --appendonly yes
     volumes:
-      - redis-data:/var/lib/redis/data
+      - redis-data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    networks:
+      - bloggin-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  bloggin-network:
+    driver: bridge
 
 volumes:
   postgres-data:
+    driver: local
   redis-data:
+    driver: local

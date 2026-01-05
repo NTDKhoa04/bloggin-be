@@ -21,7 +21,11 @@ interface AuthenticatedSocket extends Socket {
 
 @WebSocketGateway({
   cors: {
-    origin: '*',
+    origin: [
+      'http://localhost:3000', // Development
+      'https://www.bloggin.blog', // Production
+      'https://bloggin.blog', // Production (without www)
+    ],
     credentials: true,
   },
   namespace: '/collaboration',
@@ -36,7 +40,10 @@ export class CollaborationGateway
   private draftYDocs: Map<string, Y.Doc> = new Map();
   private saveTimers: Map<string, NodeJS.Timeout> = new Map();
   // Track active users per draft: Map<draftId, Map<socketId, userInfo>>
-  private activeUsers: Map<string, Map<string, { socketId: string; userId: string; role: string }>> = new Map();
+  private activeUsers: Map<
+    string,
+    Map<string, { socketId: string; userId: string; role: string }>
+  > = new Map();
 
   constructor(
     private readonly collaboratorService: CollaboratorService,
@@ -85,28 +92,34 @@ export class CollaborationGateway
         `Client ${client.id} connected to post ${draftId} as ${userRole}`,
       );
 
-          // Initialize or get existing Y.Doc
-    let yDoc = this.draftYDocs.get(draftId);
-    if (!yDoc) {
-      this.logger.log(`🔄 Initializing new Y.Doc for draft ${draftId}`);
-      yDoc = new Y.Doc();
+      // Initialize or get existing Y.Doc
+      let yDoc = this.draftYDocs.get(draftId);
+      if (!yDoc) {
+        this.logger.log(`🔄 Initializing new Y.Doc for draft ${draftId}`);
+        yDoc = new Y.Doc();
 
-      // Load existing content from database if available
-      this.logger.log(`📥 Loading draft ${draftId} from database...`);
-      const draft = await this.draftService.findOne(draftId);
-      if (draft?.data?.yjsContent) {
-        const state = Buffer.from(draft.data.yjsContent, 'base64');
-        Y.applyUpdate(yDoc, new Uint8Array(state));
-        this.logger.log(`✅ Loaded existing Y.Doc state for draft ${draftId} (${state.length} bytes)`);
+        // Load existing content from database if available
+        this.logger.log(`📥 Loading draft ${draftId} from database...`);
+        const draft = await this.draftService.findOne(draftId);
+        if (draft?.data?.yjsContent) {
+          const state = Buffer.from(draft.data.yjsContent, 'base64');
+          Y.applyUpdate(yDoc, new Uint8Array(state));
+          this.logger.log(
+            `✅ Loaded existing Y.Doc state for draft ${draftId} (${state.length} bytes)`,
+          );
+        } else {
+          this.logger.log(
+            `ℹ️ No existing yjsContent for draft ${draftId}, starting with empty Y.Doc`,
+          );
+        }
+
+        this.draftYDocs.set(draftId, yDoc);
+        this.logger.log(`✅ Y.Doc cached in memory for draft ${draftId}`);
       } else {
-        this.logger.log(`ℹ️ No existing yjsContent for draft ${draftId}, starting with empty Y.Doc`);
+        this.logger.log(
+          `♻️ Reusing existing Y.Doc from memory for draft ${draftId}`,
+        );
       }
-
-      this.draftYDocs.set(draftId, yDoc);
-      this.logger.log(`✅ Y.Doc cached in memory for draft ${draftId}`);
-    } else {
-      this.logger.log(`♻️ Reusing existing Y.Doc from memory for draft ${draftId}`);
-    }
 
       // Track active user
       if (!this.activeUsers.has(draftId)) {
@@ -120,7 +133,9 @@ export class CollaborationGateway
       };
       roomUsers.set(client.id, userInfo);
 
-      this.logger.log(`👤 User ${userId} added to active users for draft ${draftId}`);
+      this.logger.log(
+        `👤 User ${userId} added to active users for draft ${draftId}`,
+      );
 
       // Notify others that user joined
       client.to(`draft:${draftId}`).emit('user-joined', {
@@ -133,8 +148,9 @@ export class CollaborationGateway
       // Send active users list to newly connected client
       const activeUsersList = Array.from(roomUsers.values());
       client.emit('active-users', activeUsersList);
-      this.logger.log(`📋 Sent active-users list (${activeUsersList.length} users) to client ${client.id}`);
-
+      this.logger.log(
+        `📋 Sent active-users list (${activeUsersList.length} users) to client ${client.id}`,
+      );
     } catch (error) {
       this.logger.error(
         `Error during connection: ${error.message}`,
@@ -152,12 +168,16 @@ export class CollaborationGateway
       const roomUsers = this.activeUsers.get(client.draftId);
       if (roomUsers) {
         roomUsers.delete(client.id);
-        this.logger.log(`👤 Removed user ${client.userId} from active users for draft ${client.draftId}`);
-        
+        this.logger.log(
+          `👤 Removed user ${client.userId} from active users for draft ${client.draftId}`,
+        );
+
         // Clean up empty room tracking
         if (roomUsers.size === 0) {
           this.activeUsers.delete(client.draftId);
-          this.logger.log(`🧹 Cleaned up empty active users map for draft ${client.draftId}`);
+          this.logger.log(
+            `🧹 Cleaned up empty active users map for draft ${client.draftId}`,
+          );
         }
       }
 
@@ -177,12 +197,16 @@ export class CollaborationGateway
         if (!room || room.size === 0) {
           // Save the document state one last time before cleanup
           await this.saveYDocToDatabase(client.draftId);
-          this.logger.log(`No more clients for draft ${client.draftId}, saved state`);
+          this.logger.log(
+            `No more clients for draft ${client.draftId}, saved state`,
+          );
         }
       } else {
         // Fallback: always save if we can't check room size
         await this.saveYDocToDatabase(client.draftId);
-        this.logger.log(`Client disconnected from draft ${client.draftId}, saved state (adapter unavailable)`);
+        this.logger.log(
+          `Client disconnected from draft ${client.draftId}, saved state (adapter unavailable)`,
+        );
       }
     }
   }
@@ -194,7 +218,9 @@ export class CollaborationGateway
   ) {
     const { draftId, userId, userRole } = client;
 
-    this.logger.log(`Received yjs-update from ${userId} (${userRole}) for draft ${draftId}`);
+    this.logger.log(
+      `Received yjs-update from ${userId} (${userRole}) for draft ${draftId}`,
+    );
 
     if (!draftId || !userId) {
       this.logger.warn(`Missing draftId or userId in yjs-update`);
@@ -222,7 +248,7 @@ export class CollaborationGateway
       Y.applyUpdate(yDoc, new Uint8Array(update));
 
       this.logger.log(`Broadcasting yjs-update to room draft:${draftId}`);
-      
+
       // Broadcast update to all other clients in the room
       client.to(`draft:${draftId}`).emit('yjs-update', {
         update: data.update,
@@ -247,7 +273,9 @@ export class CollaborationGateway
   ) {
     const { draftId, userId } = client;
 
-    this.logger.debug(`Received awareness-update from ${userId} for draft ${draftId}`);
+    this.logger.debug(
+      `Received awareness-update from ${userId} for draft ${draftId}`,
+    );
 
     if (!draftId || !userId) {
       return;
@@ -264,10 +292,14 @@ export class CollaborationGateway
   async handleRequestSync(@ConnectedSocket() client: AuthenticatedSocket) {
     const { draftId } = client;
 
-    this.logger.log(`📥 Client ${client.id} requested sync for draft ${draftId}`);
+    this.logger.log(
+      `📥 Client ${client.id} requested sync for draft ${draftId}`,
+    );
 
     if (!draftId) {
-      this.logger.warn(`❌ No draftId for sync request from client ${client.id}`);
+      this.logger.warn(
+        `❌ No draftId for sync request from client ${client.id}`,
+      );
       return;
     }
 
@@ -278,9 +310,13 @@ export class CollaborationGateway
       client.emit('sync-update', {
         update: base64State,
       });
-      this.logger.log(`📤 Sent sync-update to client ${client.id} (${state.length} bytes)`);
+      this.logger.log(
+        `📤 Sent sync-update to client ${client.id} (${state.length} bytes)`,
+      );
     } else {
-      this.logger.warn(`⚠️ No Y.Doc found for draft ${draftId} during sync request`);
+      this.logger.warn(
+        `⚠️ No Y.Doc found for draft ${draftId} during sync request`,
+      );
     }
   }
 
@@ -288,7 +324,9 @@ export class CollaborationGateway
   handleGetActiveUsers(@ConnectedSocket() client: AuthenticatedSocket) {
     const { draftId } = client;
 
-    this.logger.log(`📋 Client ${client.id} requested active users for draft ${draftId}`);
+    this.logger.log(
+      `📋 Client ${client.id} requested active users for draft ${draftId}`,
+    );
 
     if (!draftId) {
       return;
@@ -296,9 +334,11 @@ export class CollaborationGateway
 
     const roomUsers = this.activeUsers.get(draftId);
     const activeUsersList = roomUsers ? Array.from(roomUsers.values()) : [];
-    
+
     client.emit('active-users', activeUsersList);
-    this.logger.log(`📤 Sent active-users list (${activeUsersList.length} users) to client ${client.id}`);
+    this.logger.log(
+      `📤 Sent active-users list (${activeUsersList.length} users) to client ${client.id}`,
+    );
   }
 
   private async initializeYDoc(draftId: string): Promise<void> {
@@ -335,7 +375,9 @@ export class CollaborationGateway
       clearTimeout(this.saveTimers.get(draftId));
       this.logger.debug(`⏱️ Reset save timer for draft ${draftId}`);
     } else {
-      this.logger.debug(`⏱️ Scheduled save for draft ${draftId} (will save in 2s)`);
+      this.logger.debug(
+        `⏱️ Scheduled save for draft ${draftId} (will save in 2s)`,
+      );
     }
 
     // Schedule save after 2 seconds of inactivity
@@ -356,14 +398,20 @@ export class CollaborationGateway
     }
 
     try {
-      this.logger.log(`💾 Saving Y.Doc state to database for draft ${draftId}...`);
+      this.logger.log(
+        `💾 Saving Y.Doc state to database for draft ${draftId}...`,
+      );
       const state = Y.encodeStateAsUpdate(yDoc);
       const base64State = Buffer.from(state).toString('base64');
 
-      this.logger.debug(`📦 Encoded state size: ${state.length} bytes, base64: ${base64State.length} chars`);
-      
+      this.logger.debug(
+        `📦 Encoded state size: ${state.length} bytes, base64: ${base64State.length} chars`,
+      );
+
       await this.draftService.saveYjsContent(draftId, base64State);
-      this.logger.log(`✅ Successfully saved Y.Doc state for draft ${draftId} to database`);
+      this.logger.log(
+        `✅ Successfully saved Y.Doc state for draft ${draftId} to database`,
+      );
     } catch (error) {
       this.logger.error(
         `❌ Failed to save Y.Doc for draft ${draftId}: ${error.message}`,
